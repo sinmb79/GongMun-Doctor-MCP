@@ -27,3 +27,6 @@ tests/fixtures/*_corrected.md
 # OS
 .DS_Store
 Thumbs.db
+
+# Superpowers brainstorm session files
+.superpowers/

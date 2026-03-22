@@ -20,6 +20,7 @@ llm = [
 
 [project.scripts]
 gongmun-doctor = "gongmun_doctor.cli:main"
+gongmun-doctor-gui = "gongmun_doctor.gui:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
