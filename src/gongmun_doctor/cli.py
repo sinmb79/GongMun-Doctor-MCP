@@ -102,6 +102,22 @@ def cmd_correct(args: argparse.Namespace) -> int:
         return 1
     print(f"[1/4] 규칙 로드 완료: {len(rules)}개")
 
+    # Optionally initialise LLM for L4 harmony analysis
+    harmony_checker = None
+    if args.llm_model:
+        try:
+            from gongmun_doctor.llm.runtime import LLMRuntime
+            from gongmun_doctor.llm.harmony import HarmonyChecker
+            print(f"[LLM] 모델 로드 중: {args.llm_model}")
+            harmony_checker = HarmonyChecker(LLMRuntime(args.llm_model))
+            print("[LLM] 모델 로드 완료 (L4 문장 조화 분석 활성화)")
+        except ImportError as e:
+            print(f"[LLM] 경고: {e}", file=sys.stderr)
+            print("[LLM] L4 분석 없이 계속합니다.", file=sys.stderr)
+        except RuntimeError as e:
+            print(f"[LLM] 경고: {e}", file=sys.stderr)
+            print("[LLM] L4 분석 없이 계속합니다.", file=sys.stderr)
+
     # Backup original (skip in dry-run mode)
     if not args.dry_run:
         backup = _backup(hwpx_path)
@@ -120,7 +136,7 @@ def cmd_correct(args: argparse.Namespace) -> int:
     print(f"[3/4] 문서 열기 완료: {hwpx_path.name} ({para_count}개 문단)")
 
     # Apply corrections
-    report = correct_document(doc, rules, dry_run=args.dry_run)
+    report = correct_document(doc, rules, dry_run=args.dry_run, harmony_checker=harmony_checker)
     report.input_path = str(hwpx_path)
     report.output_path = str(output_path) if not args.dry_run else "(dry-run)"
 
@@ -141,7 +157,9 @@ def cmd_correct(args: argparse.Namespace) -> int:
     # Summary
     print(f"\n{'─'*50}")
     print(f"  총 문단: {report.total_paragraphs}개")
-    print(f"  교정 건수: {report.total_corrections}건")
+    print(f"  교정 건수: {report.total_corrections}건 (규칙 기반)")
+    if report.harmony_suggestions:
+        print(f"  L4 제안: {len(report.harmony_suggestions)}건 (AI)")
     if not args.dry_run:
         print(f"  교정 파일: {output_path}")
     print(f"{'─'*50}")
@@ -189,7 +207,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="gongmun-doctor",
         description=(
-            "공문닥터 — HWPX/HWP 공문서 자동 교정 도구\n"
+            "공문닥터 | HWPX/HWP 공문서 자동 교정 도구\n"
             "\n"
             "글자가 깨져 보일 경우: 명령 프롬프트에서 'chcp 65001' 입력 후 재실행하세요.\n"
             "\n"
@@ -219,6 +237,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--strict",
         action="store_true",
         help="모든 규칙 계층 적용 (기본: L1+L2+L3)",
+    )
+    p_correct.add_argument(
+        "--llm-model",
+        metavar="PATH",
+        help="로컬 LLM 모델 경로 (.gguf): L4 문장 조화 분석 활성화",
     )
 
     # list-rules
