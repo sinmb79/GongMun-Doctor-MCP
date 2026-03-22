@@ -200,6 +200,41 @@ def cmd_list_rules(args: argparse.Namespace) -> int:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Sub-command: plugin
+# ─────────────────────────────────────────────────────────────────────────────
+
+def cmd_plugin(args: argparse.Namespace) -> int:
+    """Start the system tray plugin for 한글 COM integration."""
+    try:
+        from gongmun_doctor.hwp_com.tray_app import TrayApp
+    except ImportError as e:
+        print(f"오류: {e}", file=sys.stderr)
+        return 1
+
+    layers = None
+    if args.strict:
+        layers = ["L1_spelling", "L2_grammar", "L3_official_style"]
+
+    rules = load_rules_by_layer(layers=layers)
+
+    print(f"[공문닥터] 시스템 트레이 시작 (단축키: {args.hotkey})")
+    print("[공문닥터] 한글 문서를 열고 단축키를 누르세요. 트레이 아이콘을 우클릭해 종료하세요.")
+
+    try:
+        app = TrayApp(hotkey=args.hotkey, mode=args.mode, rules=rules)
+        app.run()
+    except ImportError as e:
+        print(f"\n오류: {e}", file=sys.stderr)
+        print("\n설치 명령:", file=sys.stderr)
+        print("  pip install gongmun-doctor[hwp]", file=sys.stderr)
+        return 1
+    except KeyboardInterrupt:
+        print("\n[공문닥터] 종료")
+
+    return 0
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Argument parser
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -248,6 +283,25 @@ def build_parser() -> argparse.ArgumentParser:
     p_rules = subparsers.add_parser("list-rules", help="교정 규칙 목록 표시")
     p_rules.add_argument("--layer", help="특정 계층만 표시 (예: L1_spelling)")
 
+    # plugin
+    p_plugin = subparsers.add_parser("plugin", help="한글 플러그인 모드 (시스템 트레이)")
+    p_plugin.add_argument(
+        "--hotkey",
+        default="ctrl+shift+g",
+        help="전역 단축키 (기본: ctrl+shift+g)",
+    )
+    p_plugin.add_argument(
+        "--mode",
+        default="track_changes",
+        choices=["track_changes", "direct"],
+        help="교정 적용 방식 (기본: track_changes)",
+    )
+    p_plugin.add_argument(
+        "--strict",
+        action="store_true",
+        help="엄격 모드: L1+L2+L3 규칙만 적용 (LLM 제외)",
+    )
+
     return parser
 
 
@@ -259,6 +313,8 @@ def main() -> None:
         sys.exit(cmd_correct(args))
     elif args.command == "list-rules":
         sys.exit(cmd_list_rules(args))
+    elif args.command == "plugin":
+        sys.exit(cmd_plugin(args))
     else:
         parser.print_help()
         sys.exit(1)
