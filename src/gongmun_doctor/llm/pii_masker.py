@@ -27,17 +27,17 @@ class PIIMasker:
             (re.compile(r"\b0[3-9]\d-\d{3,4}-\d{4}\b"), "[전화번호]"),
 
             # 5. Mobile phone without hyphens
-            (re.compile(r"\b01[016789]\d{7,8}\b"), "[전화번호]"),
+            (re.compile(r"(?<!\d)01[016789]\d{7,8}(?!\d)"), "[전화번호]"),
 
             # 6. Email address
             (re.compile(r"[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"), "[이메일]"),
 
             # 7. Bank account number (3–6 digits) - (2–6 digits) - (4–8 digits)
             #    Applied after phone patterns so already-replaced tokens won't re-match.
-            (re.compile(r"\d{3,6}-\d{2,6}-\d{4,8}"), "[계좌번호]"),
+            (re.compile(r"(?<!\d)\d{3,6}-\d{2,6}-\d{4,8}(?!\d)"), "[계좌번호]"),
 
             # 8. Passport number: one uppercase letter followed by 8 digits
-            (re.compile(r"\b[A-Z][0-9]{8}\b"), "[여권번호]"),
+            (re.compile(r"(?<![A-Z])[A-Z][0-9]{8}(?!\d)"), "[여권번호]"),
 
             # 9. Korean address: 시/도 + (시/구/군) + 로/길 + number
             #    Covers "서울특별시 강남구 테헤란로 123", "경기도 성남시 분당구 판교로 456", etc.

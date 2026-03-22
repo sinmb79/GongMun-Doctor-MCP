@@ -19,6 +19,11 @@ class TestRRN:
         text = "주민번호: 850101-2345678 확인"
         assert "[주민번호]" in masker.mask(text)
 
+    def test_masks_rrn_gender_codes(self, masker):
+        for code in ["1", "2", "3", "4"]:
+            text = f"주민번호 901231-{code}234567"
+            assert "[주민번호]" in masker.mask(text), f"gender code {code} not masked"
+
 
 class TestPhone:
     def test_masks_mobile(self, masker):
@@ -86,3 +91,15 @@ class TestClean:
         assert "010-1234-5678" not in result
         assert "hong@gov.kr" not in result
         assert "901231-1234567" not in result
+
+    def test_bank_account_no_false_positive_on_law_ref(self, masker):
+        # Korean law citation format: 제X조 should not be masked
+        text = "예산안 제2024-31호에 따라 시행합니다."
+        # This should NOT be masked as bank account
+        result = masker.mask(text)
+        assert "[계좌번호]" not in result
+
+    def test_passport_no_false_positive(self, masker):
+        # Short code like 'A1234' should not match passport (needs 8 digits)
+        text = "코드 A12345 참조"
+        assert "[여권번호]" not in masker.mask(text)
