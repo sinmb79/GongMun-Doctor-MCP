@@ -43,6 +43,8 @@ class GongmunDoctorApp(tk.Tk):
         self._queue: queue.Queue = queue.Queue()
         self._input_path = tk.StringVar()
         self._llm_path = tk.StringVar()
+        self._llm_mode = tk.StringVar(value="none")   # "none" | "local" | "cloud"
+        self._cloud_provider = tk.StringVar(value="claude")
         self._opt_report = tk.BooleanVar(value=True)
         self._opt_dryrun = tk.BooleanVar(value=False)
         self._opt_strict = tk.BooleanVar(value=False)
@@ -111,17 +113,49 @@ class GongmunDoctorApp(tk.Tk):
             row=7, column=0, columnspan=2, sticky="ew", pady=10
         )
 
-        # ── LLM 모델 ──
-        tk.Label(lf, text="LLM 모델 (선택)", font=("", 9, "bold"), anchor="w").grid(
+        # ── LLM 분석 (선택) ──
+        tk.Label(lf, text="L4 LLM 분석 (선택)", font=("", 9, "bold"), anchor="w").grid(
             row=8, column=0, columnspan=2, sticky="w", pady=(0, 2)
         )
-        tk.Entry(lf, textvariable=self._llm_path, state="readonly", width=18).grid(
-            row=9, column=0, sticky="ew", padx=(0, 4)
+        tk.Radiobutton(lf, text="없음", variable=self._llm_mode, value="none",
+                       command=self._on_llm_mode_change).grid(
+            row=9, column=0, columnspan=2, sticky="w"
         )
-        tk.Button(lf, text="찾기", width=5, command=self._pick_llm).grid(row=9, column=1)
-        tk.Label(lf, text="GGUF 파일 (선택사항)", font=("", 8), fg="#718096", anchor="w").grid(
-            row=10, column=0, columnspan=2, sticky="w", pady=(2, 0)
+        tk.Radiobutton(lf, text="로컬 GGUF", variable=self._llm_mode, value="local",
+                       command=self._on_llm_mode_change).grid(
+            row=10, column=0, columnspan=2, sticky="w"
         )
+        tk.Radiobutton(lf, text="클라우드 API", variable=self._llm_mode, value="cloud",
+                       command=self._on_llm_mode_change).grid(
+            row=11, column=0, columnspan=2, sticky="w"
+        )
+
+        # Local GGUF row (shown when mode == "local")
+        self._llm_local_frame = tk.Frame(lf)
+        self._llm_local_frame.columnconfigure(0, weight=1)
+        tk.Entry(self._llm_local_frame, textvariable=self._llm_path,
+                 state="readonly", width=14).grid(row=0, column=0, sticky="ew", padx=(0, 4))
+        tk.Button(self._llm_local_frame, text="찾기", width=5,
+                  command=self._pick_llm).grid(row=0, column=1)
+        self._llm_local_frame.grid(row=12, column=0, columnspan=2, sticky="ew", pady=(2, 0))
+        self._llm_local_frame.grid_remove()
+
+        # Cloud API row (shown when mode == "cloud")
+        self._llm_cloud_frame = tk.Frame(lf)
+        self._llm_cloud_frame.columnconfigure(0, weight=1)
+        providers = ["claude", "openai", "gemini"]
+        ttk.Combobox(
+            self._llm_cloud_frame,
+            textvariable=self._cloud_provider,
+            values=providers,
+            state="readonly",
+            width=12,
+        ).grid(row=0, column=0, sticky="ew")
+        tk.Label(self._llm_cloud_frame, text="(환경변수 API 키)", font=("", 8), fg="#718096").grid(
+            row=1, column=0, sticky="w", pady=(1, 0)
+        )
+        self._llm_cloud_frame.grid(row=12, column=0, columnspan=2, sticky="ew", pady=(2, 0))
+        self._llm_cloud_frame.grid_remove()
 
         # ── 실행 버튼 영역 (bottom) ──
         self._btn_frame = tk.Frame(lf)
@@ -271,6 +305,18 @@ class GongmunDoctorApp(tk.Tk):
         if path:
             self._llm_path.set(path)
 
+    def _on_llm_mode_change(self):
+        mode = self._llm_mode.get()
+        if mode == "local":
+            self._llm_local_frame.grid()
+            self._llm_cloud_frame.grid_remove()
+        elif mode == "cloud":
+            self._llm_local_frame.grid_remove()
+            self._llm_cloud_frame.grid()
+        else:
+            self._llm_local_frame.grid_remove()
+            self._llm_cloud_frame.grid_remove()
+
     # ── log helpers ───────────────────────────────────────────────────────────
 
     def _log_clear(self):
@@ -298,17 +344,19 @@ class GongmunDoctorApp(tk.Tk):
         dry_run = self._opt_dryrun.get()
         make_report = self._opt_report.get()
         strict = self._opt_strict.get()
-        llm_model = self._llm_path.get().strip() or None
+        llm_mode = self._llm_mode.get()
+        llm_model = self._llm_path.get().strip() if llm_mode == "local" else None
+        cloud_provider = self._cloud_provider.get() if llm_mode == "cloud" else None
 
         t = threading.Thread(
             target=self._correction_worker,
-            args=(input_path, dry_run, make_report, strict, llm_model),
+            args=(input_path, dry_run, make_report, strict, llm_model, cloud_provider),
             daemon=True,
         )
         t.start()
         self.after(100, self._drain_queue)
 
-    def _correction_worker(self, input_path_str, dry_run, make_report, strict, llm_model):
+    def _correction_worker(self, input_path_str, dry_run, make_report, strict, llm_model, cloud_provider=None):
         q = self._queue
 
         def log(msg):
@@ -366,6 +414,15 @@ class GongmunDoctorApp(tk.Tk):
                     log("[LLM] 모델 로드 완료")
                 except (ImportError, RuntimeError) as e:
                     log(f"[LLM] 경고: {e} - LLM 없이 계속합니다.")
+            elif cloud_provider and not strict:
+                try:
+                    from gongmun_doctor.llm.cloud_runtime import CloudLLMRuntime
+                    from gongmun_doctor.llm.harmony import HarmonyChecker
+                    log(f"[Cloud LLM] {cloud_provider} 연결 중...")
+                    harmony_checker = HarmonyChecker(CloudLLMRuntime(cloud_provider))
+                    log(f"[Cloud LLM] {cloud_provider} 연결 완료")
+                except (EnvironmentError, ImportError) as e:
+                    log(f"[Cloud LLM] 경고: {e} - LLM 없이 계속합니다.")
 
             # 6. Correct
             output_path = hwpx_path.parent / f"{hwpx_path.stem}_corrected.hwpx"
