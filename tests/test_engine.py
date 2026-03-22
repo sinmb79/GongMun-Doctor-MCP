@@ -3,7 +3,7 @@
 import pytest
 from unittest.mock import MagicMock
 
-from gongmun_doctor.engine import _apply_rule_to_text, correct_document
+from gongmun_doctor.engine import _apply_rule_to_text, correct_document, correct_text
 from gongmun_doctor.rules.loader import CorrectionRule, load_rules
 
 
@@ -175,3 +175,51 @@ class TestCorrectDocumentWithLLM:
         mock_checker.check_paragraph.return_value = []
         correct_document(doc, [], dry_run=True, harmony_checker=mock_checker)
         mock_checker.check_paragraph.assert_called_once()
+
+
+class TestCorrectText:
+    def test_returns_empty_for_no_matching_rules(self):
+        rule = _make_rule("T-010", "exact_replace", "없는단어", "교정")
+        result = correct_text("깨끗한 문장입니다.", [rule])
+        assert result == []
+
+    def test_returns_correction_item_when_rule_matches(self):
+        rule = _make_rule("T-011", "exact_replace", "시행알림", "시행 알림")
+        items = correct_text("도로 시행알림 공고", [rule])
+        assert len(items) == 1
+        assert items[0].rule_id == "T-011"
+        assert items[0].original_text == "도로 시행알림 공고"
+        assert items[0].corrected_text == "도로 시행 알림 공고"
+        assert items[0].paragraph_index == 0
+
+    def test_paragraph_index_passed_through(self):
+        rule = _make_rule("T-012", "exact_replace", "오류", "수정")
+        items = correct_text("오류 발생", [rule], paragraph_index=5)
+        assert items[0].paragraph_index == 5
+
+    def test_multiple_rules_chain(self):
+        rule1 = _make_rule("T-013", "exact_replace", "되있", "돼있")
+        rule2 = _make_rule("T-014", "exact_replace", "돼있", "돼 있")
+        items = correct_text("되있는 상황", [rule1, rule2])
+        assert len(items) == 2
+        assert items[0].rule_id == "T-013"
+        assert items[1].rule_id == "T-014"
+
+    def test_empty_text_returns_empty(self):
+        rule = _make_rule("T-015", "exact_replace", "오류", "수정")
+        assert correct_text("", [rule]) == []
+        assert correct_text("   ", [rule]) == []
+
+    def test_correct_document_still_works_after_refactor(self):
+        """Regression: correct_document must produce same output as before."""
+        doc = MagicMock()
+        para = MagicMock()
+        para.text = "시행알림 공고"
+        para.runs = []
+        doc.paragraphs = [para]
+        rule = _make_rule("SP-001", "exact_replace", "시행알림", "시행 알림")
+
+        report = correct_document(doc, [rule], dry_run=True)
+
+        assert report.total_corrections == 1
+        assert report.corrections[0].rule_id == "SP-001"

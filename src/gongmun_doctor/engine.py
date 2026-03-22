@@ -33,6 +33,47 @@ def _apply_rule_to_text(text: str, rule: CorrectionRule) -> tuple[str, int]:
     return text, 0
 
 
+def correct_text(
+    text: str,
+    rules: list[CorrectionRule],
+    paragraph_index: int = 0,
+) -> list[CorrectionItem]:
+    """Apply rules to a plain text string and return correction items.
+
+    Used by HwpCorrectionBridge (COM mode) to analyse text extracted from
+    a running 한글 instance. Returns an empty list for blank text.
+
+    Args:
+        text: The text to correct.
+        rules: List of CorrectionRule objects to apply.
+        paragraph_index: Paragraph index to store in each returned CorrectionItem.
+
+    Returns:
+        List of CorrectionItem, one per rule that produced a match.
+    """
+    if not text or not text.strip():
+        return []
+
+    items: list[CorrectionItem] = []
+    current = text
+    for rule in rules:
+        new_text, count = _apply_rule_to_text(current, rule)
+        if count > 0:
+            items.append(
+                CorrectionItem(
+                    paragraph_index=paragraph_index,
+                    original_text=current,
+                    corrected_text=new_text,
+                    rule_id=rule.id,
+                    rule_desc=rule.desc,
+                    rule_source=rule.source,
+                    layer=rule.layer,
+                )
+            )
+            current = new_text
+    return items
+
+
 def correct_document(
     doc: HwpxDocument,
     rules: list[CorrectionRule],
