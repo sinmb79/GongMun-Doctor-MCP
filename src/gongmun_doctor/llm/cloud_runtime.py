@@ -75,7 +75,6 @@ class CloudLLMRuntime:
                 return self._generate_gemini(safe_prompt, max_tokens, temperature)
         except Exception:
             return ""
-        return ""
 
     def _generate_claude(self, prompt: str, max_tokens: int, temperature: float) -> str:
         try:
