@@ -33,6 +33,7 @@ class CorrectionReport:
     total_corrections: int = 0
     corrections: list[CorrectionItem] = field(default_factory=list)
     harmony_suggestions: list[HarmonySuggestion] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
     format_preserved: bool = True
     dry_run: bool = False
 
@@ -79,6 +80,11 @@ def generate_markdown(report: CorrectionReport) -> str:
                     f"| **근거** | {c.rule_source} |",
                     "",
                 ]
+
+    if report.warnings:
+        lines += ["", "---", "", "## Warnings", ""]
+        for warning in report.warnings:
+            lines.append(f"- {warning}")
 
     # L4 harmony suggestions (AI)
     if report.harmony_suggestions:

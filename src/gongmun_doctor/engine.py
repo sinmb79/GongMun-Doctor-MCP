@@ -145,5 +145,10 @@ def correct_document(
                 continue
             suggestions = harmony_checker.check_paragraph(text, para_idx=p_idx)
             report.harmony_suggestions.extend(suggestions)
+            consume_warnings = getattr(harmony_checker, "consume_warnings", None)
+            if callable(consume_warnings):
+                warnings = consume_warnings()
+                if isinstance(warnings, list):
+                    report.warnings.extend(warnings)
 
     return report

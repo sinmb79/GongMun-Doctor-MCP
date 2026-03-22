@@ -15,6 +15,7 @@ def test_cloud_llm_default_is_none():
     parser = build_parser()
     args = parser.parse_args(["correct", "doc.hwpx"])
     assert args.cloud_llm is None
+    assert args.cloud_model is None
 
 
 def test_cloud_llm_all_providers_accepted():
@@ -32,8 +33,18 @@ def test_cloud_llm_invalid_provider_rejected():
         parser.parse_args(["correct", "doc.hwpx", "--cloud-llm", "invalid"])
 
 
-def test_plugin_cloud_llm_flag_accepted():
+def test_cloud_model_flag_parsed_correctly():
     from gongmun_doctor.cli import build_parser
     parser = build_parser()
-    args = parser.parse_args(["plugin", "--cloud-llm", "openai"])
+    args = parser.parse_args(
+        ["correct", "doc.hwpx", "--cloud-llm", "openai", "--cloud-model", "gpt-5-mini"]
+    )
     assert args.cloud_llm == "openai"
+    assert args.cloud_model == "gpt-5-mini"
+
+
+def test_plugin_cloud_llm_flag_rejected():
+    from gongmun_doctor.cli import build_parser
+    parser = build_parser()
+    with pytest.raises(SystemExit):
+        parser.parse_args(["plugin", "--cloud-llm", "openai"])

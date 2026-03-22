@@ -30,3 +30,7 @@ Thumbs.db
 
 # Superpowers brainstorm session files
 .superpowers/
+
+# Local archive for non-GitHub artifacts
+_local_archive/
+tests/.tmp/

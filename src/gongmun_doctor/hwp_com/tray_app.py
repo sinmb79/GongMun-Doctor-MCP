@@ -44,12 +44,10 @@ class TrayApp:
         hotkey: str = "ctrl+shift+g",
         mode: str = "track_changes",
         rules=None,
-        cloud_llm: str | None = None,
     ) -> None:
         self._hotkey = hotkey
         self._mode = mode
         self._rules = rules
-        self._cloud_llm = cloud_llm
         self._icon = None
         self._status = "연결 안 됨"
 
@@ -118,9 +116,6 @@ class TrayApp:
             self._status = "연결됨"
             self._update_icon_tooltip()
 
-            # Note: self._cloud_llm is available for future L4 harmony integration.
-            # HwpCorrectionBridge currently uses correct_text() which does not support
-            # L4 harmony analysis.
             bridge = HwpCorrectionBridge(ctrl, self._rules)
             items = bridge.run_correction(mode=mode)
 

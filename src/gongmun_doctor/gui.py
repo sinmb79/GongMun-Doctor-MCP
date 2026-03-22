@@ -45,6 +45,7 @@ class GongmunDoctorApp(tk.Tk):
         self._llm_path = tk.StringVar()
         self._llm_mode = tk.StringVar(value="none")   # "none" | "local" | "cloud"
         self._cloud_provider = tk.StringVar(value="claude")
+        self._cloud_model = tk.StringVar()
         self._opt_report = tk.BooleanVar(value=True)
         self._opt_dryrun = tk.BooleanVar(value=False)
         self._opt_strict = tk.BooleanVar(value=False)
@@ -151,8 +152,13 @@ class GongmunDoctorApp(tk.Tk):
             state="readonly",
             width=12,
         ).grid(row=0, column=0, sticky="ew")
+        tk.Entry(
+            self._llm_cloud_frame,
+            textvariable=self._cloud_model,
+            width=14,
+        ).grid(row=1, column=0, sticky="ew", pady=(4, 0))
         tk.Label(self._llm_cloud_frame, text="(환경변수 API 키)", font=("", 8), fg="#718096").grid(
-            row=1, column=0, sticky="w", pady=(1, 0)
+            row=2, column=0, sticky="w", pady=(1, 0)
         )
         self._llm_cloud_frame.grid(row=12, column=0, columnspan=2, sticky="ew", pady=(2, 0))
         self._llm_cloud_frame.grid_remove()
@@ -228,6 +234,8 @@ class GongmunDoctorApp(tk.Tk):
         tk.Label(summary, text=f"교정 건수: {report.total_corrections}건", anchor="w").pack(fill="x")
         if report.harmony_suggestions:
             tk.Label(summary, text=f"L4 제안: {len(report.harmony_suggestions)}건", anchor="w").pack(fill="x")
+        if report.warnings:
+            tk.Label(summary, text=f"경고: {len(report.warnings)}건", anchor="w").pack(fill="x")
 
         # Replace run button with action buttons
         self._run_btn.pack_forget()
@@ -267,6 +275,8 @@ class GongmunDoctorApp(tk.Tk):
             self._append_log(f"[{c.rule_id}] 문단{c.paragraph_index}: '{orig}' → '{corr}'\n")
         for s in report.harmony_suggestions:
             self._append_log(f"[L4/{s.issue_type}] 문단{s.paragraph_index}: {s.original} → {s.suggestion}\n")
+        for warning in report.warnings:
+            self._append_log(f"[Cloud LLM] 경고: {warning}\n")
         if report.total_corrections == 0 and not report.harmony_suggestions:
             self._append_log("교정 사항이 없습니다.\n")
 
@@ -347,16 +357,26 @@ class GongmunDoctorApp(tk.Tk):
         llm_mode = self._llm_mode.get()
         llm_model = self._llm_path.get().strip() if llm_mode == "local" else None
         cloud_provider = self._cloud_provider.get() if llm_mode == "cloud" else None
+        cloud_model = self._cloud_model.get().strip() if llm_mode == "cloud" else None
 
         t = threading.Thread(
             target=self._correction_worker,
-            args=(input_path, dry_run, make_report, strict, llm_model, cloud_provider),
+            args=(input_path, dry_run, make_report, strict, llm_model, cloud_provider, cloud_model),
             daemon=True,
         )
         t.start()
         self.after(100, self._drain_queue)
 
-    def _correction_worker(self, input_path_str, dry_run, make_report, strict, llm_model, cloud_provider=None):
+    def _correction_worker(
+        self,
+        input_path_str,
+        dry_run,
+        make_report,
+        strict,
+        llm_model,
+        cloud_provider=None,
+        cloud_model=None,
+    ):
         q = self._queue
 
         def log(msg):
@@ -419,7 +439,9 @@ class GongmunDoctorApp(tk.Tk):
                     from gongmun_doctor.llm.cloud_runtime import CloudLLMRuntime
                     from gongmun_doctor.llm.harmony import HarmonyChecker
                     log(f"[Cloud LLM] {cloud_provider} 연결 중...")
-                    harmony_checker = HarmonyChecker(CloudLLMRuntime(cloud_provider))
+                    harmony_checker = HarmonyChecker(
+                        CloudLLMRuntime(cloud_provider, model=cloud_model or None)
+                    )
                     log(f"[Cloud LLM] {cloud_provider} 연결 완료")
                 except (EnvironmentError, ImportError) as e:
                     log(f"[Cloud LLM] 경고: {e} - LLM 없이 계속합니다.")

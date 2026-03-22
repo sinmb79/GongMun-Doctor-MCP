@@ -29,6 +29,7 @@ class HarmonyChecker:
 
     def __init__(self, runtime: LLMRuntime) -> None:
         self._runtime = runtime
+        self._warnings: list[str] = []
 
     def check_paragraph(self, text: str, para_idx: int) -> list[HarmonySuggestion]:
         """Analyse one paragraph and return a list of harmony suggestions.
@@ -41,7 +42,15 @@ class HarmonyChecker:
 
         prompt = f"{_SYSTEM_PROMPT}\n\n문단:\n{text}\n\n응답:"
         response = self._runtime.generate(prompt, max_tokens=256, temperature=0.1)
+        runtime_warning = getattr(self._runtime, "last_error", None)
+        if runtime_warning and runtime_warning not in self._warnings:
+            self._warnings.append(runtime_warning)
         return self._parse_response(response, para_idx)
+
+    def consume_warnings(self) -> list[str]:
+        warnings = list(self._warnings)
+        self._warnings.clear()
+        return warnings
 
     def _parse_response(self, response: str, para_idx: int) -> list[HarmonySuggestion]:
         """Parse LLM response lines into HarmonySuggestion objects."""

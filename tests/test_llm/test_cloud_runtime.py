@@ -89,6 +89,8 @@ def test_generate_returns_empty_on_exception(monkeypatch):
     result = runtime.generate("테스트")
 
     assert result == ""
+    assert runtime.last_error is not None
+    assert "claude" in runtime.last_error
 
 
 def test_pii_is_masked_before_api_call(monkeypatch):

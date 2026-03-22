@@ -58,6 +58,11 @@ class CloudLLMRuntime:
         self._provider = provider
         self._api_key = api_key
         self._model = model or _DEFAULT_MODELS[provider]
+        self._last_error: str | None = None
+
+    @property
+    def last_error(self) -> str | None:
+        return self._last_error
 
     def generate(self, prompt: str, max_tokens: int = 512, temperature: float = 0.1) -> str:
         """Call cloud API. Returns empty string on any error (graceful fallback).
@@ -66,6 +71,7 @@ class CloudLLMRuntime:
         """
         from gongmun_doctor.llm.pii_masker import PIIMasker
         safe_prompt = PIIMasker().mask(prompt)
+        self._last_error = None
         try:
             if self._provider == "claude":
                 return self._generate_claude(safe_prompt, max_tokens, temperature)
@@ -73,7 +79,10 @@ class CloudLLMRuntime:
                 return self._generate_openai(safe_prompt, max_tokens, temperature)
             elif self._provider == "gemini":
                 return self._generate_gemini(safe_prompt, max_tokens, temperature)
-        except Exception:
+        except Exception as exc:
+            self._last_error = (
+                f"{self._provider} model '{self._model}' request failed: {exc}"
+            )
             return ""
 
     def _generate_claude(self, prompt: str, max_tokens: int, temperature: float) -> str:

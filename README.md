@@ -189,6 +189,7 @@ gongmun-doctor correct <입력파일> [옵션]
 | `--strict` | L1+L2+L3 모든 규칙 명시적 적용 (AI 제외) | `--strict` |
 | `--llm-model 경로` | 로컬 AI 모델 경로 (.gguf) | `--llm-model C:\models\model.gguf` |
 | `--cloud-llm 제공자` | 클라우드 AI 연동: `claude` / `openai` / `gemini` | `--cloud-llm claude` |
+| `--cloud-model 이름` | 클라우드 AI 모델명 직접 지정 | `--cloud-model gpt-5-mini` |
 
 #### 사용 예시
 
@@ -274,7 +275,7 @@ gongmun-doctor-gui
 3. AI 분석이 필요하면 **L4 LLM 분석** 섹션에서 선택합니다.
    - **없음** — 규칙 교정만 (기본, 오프라인)
    - **로컬 GGUF** — PC에 설치된 AI 모델 파일 선택
-   - **클라우드 API** — Claude / OpenAI / Gemini 중 선택
+   - **클라우드 API** — Claude / OpenAI / Gemini 중 선택, 필요하면 모델명 직접 입력
 4. **교정 실행** 버튼을 누릅니다.
 5. 완료 후 **교정 파일 열기** 또는 **보고서 열기** 버튼으로 결과를 확인합니다.
 
@@ -310,7 +311,6 @@ gongmun-doctor plugin --hotkey ctrl+shift+g --mode track_changes
 | `--mode` | `track_changes` — 변경 추적으로 적용 (검토 후 수락) | `track_changes` |
 |  | `direct` — 바로 적용 | |
 | `--strict` | L1+L2+L3 규칙만 적용 (AI 제외) | — |
-| `--cloud-llm` | 클라우드 AI 연동: `claude` / `openai` / `gemini` | — |
 
 ### 사용 순서
 
@@ -490,6 +490,7 @@ set GOOGLE_API_KEY=AIza...
 gongmun-doctor correct 문서.hwpx --cloud-llm claude --report
 gongmun-doctor correct 문서.hwpx --cloud-llm openai --report
 gongmun-doctor correct 문서.hwpx --cloud-llm gemini --report
+gongmun-doctor correct 문서.hwpx --cloud-llm openai --cloud-model gpt-5-mini --report
 ```
 
 **출력 예시:**
@@ -504,6 +505,8 @@ gongmun-doctor correct 문서.hwpx --cloud-llm gemini --report
 ```
 
 보고서(`.md`)를 열면 L4 섹션이 추가되어 있습니다.
+
+기본 모델은 제공자별 기본값을 사용하며, 업무에 맞게 다른 모델을 쓰려면 `--cloud-model` 또는 GUI의 모델 입력란을 사용하면 됩니다.
 
 ```markdown
 ## L4 -- 문장 조화 제안 (AI)

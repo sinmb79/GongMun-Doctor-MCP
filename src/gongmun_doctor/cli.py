@@ -123,7 +123,9 @@ def cmd_correct(args: argparse.Namespace) -> int:
             from gongmun_doctor.llm.cloud_runtime import CloudLLMRuntime
             from gongmun_doctor.llm.harmony import HarmonyChecker
             print(f"[Cloud LLM] {args.cloud_llm} 연결 중...")
-            harmony_checker = HarmonyChecker(CloudLLMRuntime(args.cloud_llm))
+            harmony_checker = HarmonyChecker(
+                CloudLLMRuntime(args.cloud_llm, model=args.cloud_model)
+            )
             print(f"[Cloud LLM] {args.cloud_llm} 연결 완료 (L4 문장 조화 분석 활성화)")
         except EnvironmentError as e:
             print(f"[Cloud LLM] 경고: {e}", file=sys.stderr)
@@ -174,9 +176,15 @@ def cmd_correct(args: argparse.Namespace) -> int:
     print(f"  교정 건수: {report.total_corrections}건 (규칙 기반)")
     if report.harmony_suggestions:
         print(f"  L4 제안: {len(report.harmony_suggestions)}건 (AI)")
+    if report.warnings:
+        print(f"  경고: {len(report.warnings)}건")
     if not args.dry_run:
         print(f"  교정 파일: {output_path}")
     print(f"{'─'*50}")
+
+    if report.warnings:
+        for warning in report.warnings:
+            print(f"[Cloud LLM] 경고: {warning}", file=sys.stderr)
 
     if report.total_corrections == 0:
         print("[완료] 교정 사항이 없습니다.")
@@ -231,13 +239,11 @@ def cmd_plugin(args: argparse.Namespace) -> int:
 
     rules = load_rules_by_layer(layers=layers)
 
-    cloud_llm = getattr(args, "cloud_llm", None)
-
     print(f"[공문닥터] 시스템 트레이 시작 (단축키: {args.hotkey})")
     print("[공문닥터] 한글 문서를 열고 단축키를 누르세요. 트레이 아이콘을 우클릭해 종료하세요.")
 
     try:
-        app = TrayApp(hotkey=args.hotkey, mode=args.mode, rules=rules, cloud_llm=cloud_llm)
+        app = TrayApp(hotkey=args.hotkey, mode=args.mode, rules=rules)
         app.run()
     except ImportError as e:
         print(f"\n오류: {e}", file=sys.stderr)
@@ -300,6 +306,11 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="{claude,openai,gemini}",
         help="클라우드 LLM 제공자: claude/openai/gemini (환경변수 API 키 필요)",
     )
+    p_correct.add_argument(
+        "--cloud-model",
+        metavar="MODEL",
+        help="클라우드 LLM 모델명 직접 지정",
+    )
 
     # list-rules
     p_rules = subparsers.add_parser("list-rules", help="교정 규칙 목록 표시")
@@ -323,13 +334,6 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="엄격 모드: L1+L2+L3 규칙만 적용 (LLM 제외)",
     )
-    p_plugin.add_argument(
-        "--cloud-llm",
-        choices=["claude", "openai", "gemini"],
-        metavar="{claude,openai,gemini}",
-        help="클라우드 LLM 제공자: claude/openai/gemini",
-    )
-
     return parser
 
 

@@ -77,6 +77,13 @@ class TestGenerateMarkdown:
         assert "문단 3" in md
 
 
+    def test_warnings_section_shown(self):
+        report = _make_report()
+        report.warnings = ["Cloud LLM API error"]
+        md = generate_markdown(report)
+        assert "Cloud LLM API error" in md
+
+
 class TestWriteReport:
     def test_write_creates_file(self):
         report = _make_report()

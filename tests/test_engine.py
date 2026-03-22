@@ -157,6 +157,7 @@ class TestCorrectDocumentWithLLM:
             HarmonySuggestion(0, "redundancy", "미리 사전에", "사전에", "중복 표현"),
         ]
 
+        mock_checker.consume_warnings.return_value = []
         report = correct_document(doc, [], dry_run=True, harmony_checker=mock_checker)
 
         assert len(report.harmony_suggestions) == 1
@@ -173,8 +174,23 @@ class TestCorrectDocumentWithLLM:
         doc = self._make_mock_doc(["", "   ", "실제 내용"])
         mock_checker = MagicMock(spec=HarmonyChecker)
         mock_checker.check_paragraph.return_value = []
+        mock_checker.consume_warnings.return_value = []
         correct_document(doc, [], dry_run=True, harmony_checker=mock_checker)
         mock_checker.check_paragraph.assert_called_once()
+
+
+    def test_runtime_warnings_added_to_report(self):
+        from gongmun_doctor.llm.harmony import HarmonyChecker
+
+        doc = self._make_mock_doc(["臾몄옣?낅땲??"])
+        mock_checker = MagicMock(spec=HarmonyChecker)
+        mock_checker.check_paragraph.return_value = []
+        mock_checker.consume_warnings.return_value = ["Cloud LLM API error"]
+
+        report = correct_document(doc, [], dry_run=True, harmony_checker=mock_checker)
+
+        assert report.warnings == ["Cloud LLM API error"]
+        mock_checker.consume_warnings.assert_called_once()
 
 
 class TestCorrectText:
