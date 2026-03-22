@@ -132,3 +132,46 @@ class TestCorrectDocumentDryRun:
         assert c.corrected_text == "시행 알림 공고"
         assert c.paragraph_index == 0
         assert c.layer == "L1_spelling"
+
+
+class TestCorrectDocumentWithLLM:
+    def _make_mock_doc(self, paragraphs):
+        doc = MagicMock()
+        mock_paras = []
+        for text in paragraphs:
+            para = MagicMock()
+            para.text = text
+            para.runs = []
+            mock_paras.append(para)
+        doc.paragraphs = mock_paras
+        return doc
+
+    def test_llm_suggestions_added_to_report(self):
+        from gongmun_doctor.llm.harmony import HarmonyChecker
+        from gongmun_doctor.report.markdown import HarmonySuggestion
+
+        doc = self._make_mock_doc(["미리 사전에 검토하였습니다."])
+
+        mock_checker = MagicMock(spec=HarmonyChecker)
+        mock_checker.check_paragraph.return_value = [
+            HarmonySuggestion(0, "redundancy", "미리 사전에", "사전에", "중복 표현"),
+        ]
+
+        report = correct_document(doc, [], dry_run=True, harmony_checker=mock_checker)
+
+        assert len(report.harmony_suggestions) == 1
+        assert report.harmony_suggestions[0].issue_type == "redundancy"
+        mock_checker.check_paragraph.assert_called_once_with("미리 사전에 검토하였습니다.", para_idx=0)
+
+    def test_no_llm_checker_skips_l4(self):
+        doc = self._make_mock_doc(["문장입니다."])
+        report = correct_document(doc, [], dry_run=True, harmony_checker=None)
+        assert report.harmony_suggestions == []
+
+    def test_empty_paragraph_not_sent_to_llm(self):
+        from gongmun_doctor.llm.harmony import HarmonyChecker
+        doc = self._make_mock_doc(["", "   ", "실제 내용"])
+        mock_checker = MagicMock(spec=HarmonyChecker)
+        mock_checker.check_paragraph.return_value = []
+        correct_document(doc, [], dry_run=True, harmony_checker=mock_checker)
+        mock_checker.check_paragraph.assert_called_once()

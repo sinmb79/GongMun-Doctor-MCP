@@ -1,11 +1,17 @@
 """Correction engine — applies rules to HWPX document paragraphs."""
 
+from __future__ import annotations
+
 import re
+from typing import TYPE_CHECKING
 
 from hwpx.document import HwpxDocument
 
 from gongmun_doctor.rules.loader import CorrectionRule
 from gongmun_doctor.report.markdown import CorrectionItem, CorrectionReport
+
+if TYPE_CHECKING:
+    from gongmun_doctor.llm.harmony import HarmonyChecker
 
 
 def _apply_rule_to_text(text: str, rule: CorrectionRule) -> tuple[str, int]:
@@ -31,11 +37,15 @@ def correct_document(
     doc: HwpxDocument,
     rules: list[CorrectionRule],
     dry_run: bool = False,
+    harmony_checker: HarmonyChecker | None = None,
 ) -> CorrectionReport:
     """Apply all rules to all paragraphs in the document.
 
     When dry_run=True the document object is not modified; the report
     still reflects what *would* be corrected.
+
+    harmony_checker is optional — if provided, an L4 AI pass is run after
+    the rule-based passes and suggestions are added to the report.
 
     Returns:
         CorrectionReport with all corrections found (and applied unless dry_run).
@@ -50,8 +60,6 @@ def correct_document(
     report.total_paragraphs = len(paragraphs)
 
     # ── Phase 1: collect corrections by scanning paragraph text ──────────
-    # We record what changed so the report is accurate, then replay the
-    # actual document edits in phase 2.
     for p_idx, para in enumerate(paragraphs):
         original = para.text
         if not original or not original.strip():
@@ -86,5 +94,15 @@ def correct_document(
                         if run.text and re.search(rule.search, run.text):
                             new_text = re.sub(rule.search, rule.replace, run.text)
                             run.replace_text(run.text, new_text)
+
+    # ── Phase 3: L4 harmony analysis via LLM (optional) ─────────────────
+    # paragraphs is already defined above (doc.paragraphs, Line 57)
+    if harmony_checker is not None:
+        for p_idx, para in enumerate(paragraphs):
+            text = para.text
+            if not text or not text.strip():
+                continue
+            suggestions = harmony_checker.check_paragraph(text, para_idx=p_idx)
+            report.harmony_suggestions.extend(suggestions)
 
     return report
