@@ -1,0 +1,265 @@
+{
+  "meta": {
+    "layer": "L1_spelling",
+    "description": "맞춤법 및 띄어쓰기 교정 규칙",
+    "source": "한글 맞춤법 통일안, 표준어 규정, 표준국어대사전"
+  },
+  "rules": [
+    {
+      "id": "SP-001",
+      "type": "exact_replace",
+      "search": "시행알림",
+      "replace": "시행 알림",
+      "desc": "합성어가 아닌 경우 띄어쓰기",
+      "source": "한글 맞춤법 제2항"
+    },
+    {
+      "id": "SP-002",
+      "type": "exact_replace",
+      "search": "참고 하시기",
+      "replace": "참고하시기",
+      "desc": "'참고하다'는 한 단어이므로 붙여 씀",
+      "source": "표준국어대사전"
+    },
+    {
+      "id": "SP-003",
+      "type": "exact_replace",
+      "search": "보수 공사",
+      "replace": "보수공사",
+      "desc": "'보수공사'는 한 단어이므로 붙여 씀",
+      "source": "표준국어대사전"
+    },
+    {
+      "id": "SP-004",
+      "type": "exact_replace",
+      "search": "검토하여주시기",
+      "replace": "검토하여 주시기",
+      "desc": "보조 용언 '주다'는 띄어 씀",
+      "source": "한글 맞춤법 제47항"
+    },
+    {
+      "id": "SP-005",
+      "type": "exact_replace",
+      "search": "하여주시기",
+      "replace": "하여 주시기",
+      "desc": "보조 용언 '주다'는 띄어 씀",
+      "source": "한글 맞춤법 제47항"
+    },
+    {
+      "id": "SP-006",
+      "type": "exact_replace",
+      "search": "할려고",
+      "replace": "하려고",
+      "desc": "'ㄹ려고'는 잘못된 표기, '려고'가 올바름",
+      "source": "한글 맞춤법 제15항"
+    },
+    {
+      "id": "SP-007",
+      "type": "exact_replace",
+      "search": "점용위치",
+      "replace": "점용 위치",
+      "desc": "명사 나열 시 띄어쓰기",
+      "source": "한글 맞춤법 제2항"
+    },
+    {
+      "id": "SP-008",
+      "type": "exact_replace",
+      "search": "점용목적",
+      "replace": "점용 목적",
+      "desc": "명사 나열 시 띄어쓰기",
+      "source": "한글 맞춤법 제2항"
+    },
+    {
+      "id": "SP-009",
+      "type": "exact_replace",
+      "search": "점용기간",
+      "replace": "점용 기간",
+      "desc": "명사 나열 시 띄어쓰기",
+      "source": "한글 맞춤법 제2항"
+    },
+    {
+      "id": "SP-010",
+      "type": "exact_replace",
+      "search": "문의사항",
+      "replace": "문의 사항",
+      "desc": "'문의 사항'은 띄어 씀",
+      "source": "표준국어대사전"
+    },
+    {
+      "id": "SP-011",
+      "type": "exact_replace",
+      "search": "공사기간중",
+      "replace": "공사 기간 중",
+      "desc": "명사+의존명사 띄어쓰기",
+      "source": "한글 맞춤법 제42항"
+    },
+    {
+      "id": "SP-012",
+      "type": "exact_replace",
+      "search": "됬",
+      "replace": "됐",
+      "desc": "'되었'의 준말은 '됐'이 올바름",
+      "source": "한글 맞춤법 제35항"
+    },
+    {
+      "id": "SP-013",
+      "type": "exact_replace",
+      "search": "어떻해",
+      "replace": "어떻게 해",
+      "desc": "'어떻해'는 잘못된 표기",
+      "source": "표준국어대사전"
+    },
+    {
+      "id": "SP-014",
+      "type": "exact_replace",
+      "search": "않되",
+      "replace": "안 되",
+      "desc": "'않'은 부정 서술어, '안'이 부정 부사",
+      "source": "한글 맞춤법 제39항"
+    },
+    {
+      "id": "SP-015",
+      "type": "exact_replace",
+      "search": "않돼",
+      "replace": "안 돼",
+      "desc": "'않'은 부정 서술어, '안'이 부정 부사",
+      "source": "한글 맞춤법 제39항"
+    },
+    {
+      "id": "SP-016",
+      "type": "exact_replace",
+      "search": "제출해주시기",
+      "replace": "제출하여 주시기",
+      "desc": "보조 용언 '주다'는 띄어 씀, 격식체 표현",
+      "source": "한글 맞춤법 제47항"
+    },
+    {
+      "id": "SP-017",
+      "type": "exact_replace",
+      "search": "협조해주시기",
+      "replace": "협조하여 주시기",
+      "desc": "보조 용언 '주다'는 띄어 씀, 격식체 표현",
+      "source": "한글 맞춤법 제47항"
+    },
+    {
+      "id": "SP-018",
+      "type": "exact_replace",
+      "search": "통보해주시기",
+      "replace": "통보하여 주시기",
+      "desc": "보조 용언 '주다'는 띄어 씀",
+      "source": "한글 맞춤법 제47항"
+    },
+    {
+      "id": "SP-019",
+      "type": "exact_replace",
+      "search": "검토해주시기",
+      "replace": "검토하여 주시기",
+      "desc": "보조 용언 '주다'는 띄어 씀",
+      "source": "한글 맞춤법 제47항"
+    },
+    {
+      "id": "SP-020",
+      "type": "exact_replace",
+      "search": "확인해주시기",
+      "replace": "확인하여 주시기",
+      "desc": "보조 용언 '주다'는 띄어 씀",
+      "source": "한글 맞춤법 제47항"
+    },
+    {
+      "id": "SP-021",
+      "type": "exact_replace",
+      "search": "시공기간",
+      "replace": "시공 기간",
+      "desc": "명사 나열 시 띄어쓰기",
+      "source": "한글 맞춤법 제2항"
+    },
+    {
+      "id": "SP-022",
+      "type": "exact_replace",
+      "search": "설계금액",
+      "replace": "설계 금액",
+      "desc": "명사 나열 시 띄어쓰기",
+      "source": "한글 맞춤법 제2항"
+    },
+    {
+      "id": "SP-023",
+      "type": "exact_replace",
+      "search": "공사비",
+      "replace": "공사비",
+      "desc": "'공사비'는 한 단어 (변경 없음 — 오류 방지용)",
+      "source": "표준국어대사전"
+    },
+    {
+      "id": "SP-024",
+      "type": "exact_replace",
+      "search": "준공검사",
+      "replace": "준공 검사",
+      "desc": "명사 나열 시 띄어쓰기",
+      "source": "한글 맞춤법 제2항"
+    },
+    {
+      "id": "SP-025",
+      "type": "exact_replace",
+      "search": "업무협조",
+      "replace": "업무 협조",
+      "desc": "명사 나열 시 띄어쓰기",
+      "source": "한글 맞춤법 제2항"
+    },
+    {
+      "id": "SP-026",
+      "type": "exact_replace",
+      "search": "요청드립니다",
+      "replace": "요청합니다",
+      "desc": "'요청드리다'는 과잉 경어, '요청하다'가 적절",
+      "source": "국립국어원 공문서 바로 쓰기"
+    },
+    {
+      "id": "SP-027",
+      "type": "exact_replace",
+      "search": "말씀드립니다",
+      "replace": "알립니다",
+      "desc": "공문서에서 '말씀드리다'보다 '알리다'가 격식체",
+      "source": "공문서 작성 요령"
+    },
+    {
+      "id": "SP-028",
+      "type": "exact_replace",
+      "search": "알려드립니다",
+      "replace": "알립니다",
+      "desc": "공문서 종결은 간결하게 '알립니다' 사용",
+      "source": "공문서 작성 요령"
+    },
+    {
+      "id": "SP-029",
+      "type": "exact_replace",
+      "search": "송부해드립니다",
+      "replace": "송부합니다",
+      "desc": "'드리다' 과잉 사용 지양",
+      "source": "공문서 작성 요령"
+    },
+    {
+      "id": "SP-030",
+      "type": "exact_replace",
+      "search": "첨부해드립니다",
+      "replace": "첨부합니다",
+      "desc": "'드리다' 과잉 사용 지양",
+      "source": "공문서 작성 요령"
+    },
+    {
+      "id": "SP-031",
+      "type": "exact_replace",
+      "search": "사용기간",
+      "replace": "사용 기간",
+      "desc": "명사 나열 시 띄어쓰기",
+      "source": "한글 맞춤법 제2항"
+    },
+    {
+      "id": "SP-032",
+      "type": "exact_replace",
+      "search": "공사현장",
+      "replace": "공사 현장",
+      "desc": "명사 나열 시 띄어쓰기",
+      "source": "한글 맞춤법 제2항"
+    }
+  ]
+}

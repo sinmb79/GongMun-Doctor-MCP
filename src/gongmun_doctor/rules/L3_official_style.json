@@ -1,0 +1,209 @@
+{
+  "meta": {
+    "layer": "L3_official_style",
+    "description": "공문서체 교정 규칙",
+    "source": "행정업무운영편람, 공문서 작성 요령, 국립국어원"
+  },
+  "rules": [
+    {
+      "id": "OS-001",
+      "type": "regex_replace",
+      "pattern": "관련하여,",
+      "replace": "관련하여",
+      "desc": "공문서에서 접속 표현 뒤 쉼표 생략",
+      "source": "공문서 작성 요령"
+    },
+    {
+      "id": "OS-002",
+      "type": "regex_replace",
+      "pattern": "관련 :",
+      "replace": "관련:",
+      "desc": "콜론(:) 앞에 공백 넣지 않음",
+      "source": "공문서 작성 요령"
+    },
+    {
+      "id": "OS-003",
+      "type": "regex_replace",
+      "pattern": "과 -(\\d)",
+      "replace": "과-\\1",
+      "desc": "문서번호에서 부서명과 하이픈 사이 공백 제거",
+      "source": "행정업무운영편람 제7조"
+    },
+    {
+      "id": "OS-004",
+      "type": "regex_replace",
+      "pattern": "(\\d{4})\\.(\\d{2})\\.(\\d{2})\\.?\\s*~\\s*(\\d{4})\\.(\\d{2})\\.(\\d{2})\\.?",
+      "replace": "\\1. \\2. \\3. ~ \\4. \\5. \\6.",
+      "desc": "날짜 형식: 연. 월. 일. 사이 공백 및 물결표 앞뒤 공백",
+      "source": "행정업무운영편람 별표"
+    },
+    {
+      "id": "OS-005",
+      "type": "exact_replace",
+      "search": "되시기 바랍니다",
+      "replace": "됩니다",
+      "desc": "'되시기 바랍니다'는 이중 높임으로 부적절, '됩니다'로 교정",
+      "source": "국립국어원 공문서 바로 쓰기"
+    },
+    {
+      "id": "OS-006",
+      "type": "exact_replace",
+      "search": "있으시면",
+      "replace": "있으면",
+      "desc": "공문서에서 '있으시면'은 과잉 경어, '있으면'이 적절",
+      "source": "국립국어원 공문서 바로 쓰기"
+    },
+    {
+      "id": "OS-007",
+      "type": "exact_replace",
+      "search": "부탁드립니다",
+      "replace": "바랍니다",
+      "desc": "공문서 종결 표현은 '바랍니다' 통일",
+      "source": "공문서 작성 요령"
+    },
+    {
+      "id": "OS-008",
+      "type": "exact_replace",
+      "search": "회신하여 주세요",
+      "replace": "회신하여 주시기 바랍니다",
+      "desc": "공문서 종결은 '~하여 주시기 바랍니다' 형식 통일 (합쇼체)",
+      "source": "행정업무운영편람"
+    },
+    {
+      "id": "OS-009",
+      "type": "exact_replace",
+      "search": "완료되었기에",
+      "replace": "완료되었으므로",
+      "desc": "'~기에'는 구어체, 공문서에서는 '~므로' 사용",
+      "source": "공문서 작성 요령"
+    },
+    {
+      "id": "OS-010",
+      "type": "exact_replace",
+      "search": "대해서",
+      "replace": "대하여",
+      "desc": "공문서에서 '~에 대해서'는 '~에 대하여'로 씀",
+      "source": "공문서 작성 요령"
+    },
+    {
+      "id": "OS-011",
+      "type": "exact_replace",
+      "search": "관련,",
+      "replace": "관련하여",
+      "desc": "'관련' 뒤에 쉼표 대신 '관련하여' 사용",
+      "source": "공문서 작성 요령"
+    },
+    {
+      "id": "OS-012",
+      "type": "exact_replace",
+      "search": "붙  임",
+      "replace": "붙임",
+      "desc": "붙임 표기에서 불필요한 공백 제거",
+      "source": "행정업무운영편람"
+    },
+    {
+      "id": "OS-013",
+      "type": "regex_replace",
+      "pattern": "붙임\\s{2,}",
+      "replace": "붙임  ",
+      "desc": "붙임과 내용 사이 공백 2칸 통일",
+      "source": "행정업무운영편람 제19조"
+    },
+    {
+      "id": "OS-014",
+      "type": "exact_replace",
+      "search": "위와 같이",
+      "replace": "위와 같이",
+      "desc": "공문서 상용 표현 — 변경 없음",
+      "source": "공문서 작성 요령"
+    },
+    {
+      "id": "OS-015",
+      "type": "exact_replace",
+      "search": "아래와 같습니다.",
+      "replace": "아래와 같습니다.",
+      "desc": "공문서 상용 표현 — 변경 없음",
+      "source": "공문서 작성 요령"
+    },
+    {
+      "id": "OS-016",
+      "type": "exact_replace",
+      "search": "검토 후 회신",
+      "replace": "검토하신 후 회신",
+      "desc": "공문서 관용 표현 — 주어 동작의 명확화",
+      "source": "공문서 작성 요령"
+    },
+    {
+      "id": "OS-017",
+      "type": "exact_replace",
+      "search": "하기와 같이",
+      "replace": "다음과 같이",
+      "desc": "'하기와 같이'는 한자식 표현, '다음과 같이'로 순화",
+      "source": "국립국어원 행정용어 순화"
+    },
+    {
+      "id": "OS-018",
+      "type": "exact_replace",
+      "search": "좌기와 같이",
+      "replace": "다음과 같이",
+      "desc": "'좌기와 같이'는 한자식 표현, '다음과 같이'로 순화",
+      "source": "국립국어원 행정용어 순화"
+    },
+    {
+      "id": "OS-019",
+      "type": "exact_replace",
+      "search": "우기와 같이",
+      "replace": "다음과 같이",
+      "desc": "'우기와 같이'는 한자식 표현, '다음과 같이'로 순화",
+      "source": "국립국어원 행정용어 순화"
+    },
+    {
+      "id": "OS-020",
+      "type": "exact_replace",
+      "search": "익일",
+      "replace": "다음 날",
+      "desc": "'익일'은 한자어, '다음 날'로 순화",
+      "source": "국립국어원 행정용어 순화"
+    },
+    {
+      "id": "OS-021",
+      "type": "exact_replace",
+      "search": "당일",
+      "replace": "그날",
+      "desc": "'당일'은 한자어, '그날'로 순화 가능 (맥락 확인 필요)",
+      "source": "국립국어원 행정용어 순화"
+    },
+    {
+      "id": "OS-022",
+      "type": "exact_replace",
+      "search": "귀 기관",
+      "replace": "귀 기관",
+      "desc": "'귀 기관'은 올바른 공문서 표현 — 변경 없음",
+      "source": "행정업무운영편람"
+    },
+    {
+      "id": "OS-023",
+      "type": "exact_replace",
+      "search": "귀기관",
+      "replace": "귀 기관",
+      "desc": "'귀 기관' 띄어쓰기",
+      "source": "행정업무운영편람"
+    },
+    {
+      "id": "OS-024",
+      "type": "regex_replace",
+      "pattern": "제\\s+(\\d+)\\s+호",
+      "replace": "제\\1호",
+      "desc": "문서 번호 '제 X 호' 형식을 '제X호'로 통일",
+      "source": "행정업무운영편람 제7조"
+    },
+    {
+      "id": "OS-025",
+      "type": "exact_replace",
+      "search": "통하여",
+      "replace": "통해",
+      "desc": "공문서 간결화: '통하여'→'통해' (구어 맥락 제외)",
+      "source": "공문서 작성 요령"
+    }
+  ]
+}

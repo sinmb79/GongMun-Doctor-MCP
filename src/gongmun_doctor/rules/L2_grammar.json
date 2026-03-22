@@ -1,0 +1,105 @@
+{
+  "meta": {
+    "layer": "L2_grammar",
+    "description": "문법 교정 규칙 — 조사 오류, 활용 오류, 주어-술어 불일치",
+    "source": "표준국어문법론, 국립국어원 어문 규범"
+  },
+  "rules": [
+    {
+      "id": "GR-001",
+      "type": "exact_replace",
+      "search": "을/를",
+      "replace": "을",
+      "desc": "조사 병기 제거 — 공문서에는 실제 조사만 사용",
+      "source": "공문서 작성 요령"
+    },
+    {
+      "id": "GR-002",
+      "type": "exact_replace",
+      "search": "이/가",
+      "replace": "이",
+      "desc": "조사 병기 제거 — 공문서에는 실제 조사만 사용",
+      "source": "공문서 작성 요령"
+    },
+    {
+      "id": "GR-003",
+      "type": "exact_replace",
+      "search": "은/는",
+      "replace": "은",
+      "desc": "조사 병기 제거 — 공문서에는 실제 조사만 사용",
+      "source": "공문서 작성 요령"
+    },
+    {
+      "id": "GR-004",
+      "type": "exact_replace",
+      "search": "에서부터",
+      "replace": "에서",
+      "desc": "'에서부터'는 중복 조사, '에서'로 간결하게",
+      "source": "표준국어문법론"
+    },
+    {
+      "id": "GR-005",
+      "type": "exact_replace",
+      "search": "로부터",
+      "replace": "로부터",
+      "desc": "'로부터'는 올바른 조사 형태 (변경 없음)",
+      "source": "표준국어대사전"
+    },
+    {
+      "id": "GR-006",
+      "type": "exact_replace",
+      "search": "되어지",
+      "replace": "되",
+      "desc": "'되어지다'는 이중 피동 표현, '되다'로 교정",
+      "source": "국립국어원 어문 규범"
+    },
+    {
+      "id": "GR-007",
+      "type": "exact_replace",
+      "search": "여지게",
+      "replace": "지게",
+      "desc": "이중 피동 표현 제거",
+      "source": "국립국어원 어문 규범"
+    },
+    {
+      "id": "GR-008",
+      "type": "exact_replace",
+      "search": "~하여야",
+      "replace": "~하여야",
+      "desc": "'~해야'의 격식체 '~하여야'는 공문서에 적합 (변경 없음)",
+      "source": "공문서 작성 요령"
+    },
+    {
+      "id": "GR-009",
+      "type": "exact_replace",
+      "search": "해야됩니다",
+      "replace": "하여야 합니다",
+      "desc": "구어체 '해야됩니다'를 격식체로 교정",
+      "source": "공문서 작성 요령"
+    },
+    {
+      "id": "GR-010",
+      "type": "exact_replace",
+      "search": "해야 됩니다",
+      "replace": "하여야 합니다",
+      "desc": "구어체 '해야 됩니다'를 격식체로 교정",
+      "source": "공문서 작성 요령"
+    },
+    {
+      "id": "GR-011",
+      "type": "exact_replace",
+      "search": "있도록 해주시기",
+      "replace": "있도록 하여 주시기",
+      "desc": "보조 용언 '주다' 띄어쓰기 및 격식체 표현",
+      "source": "한글 맞춤법 제47항"
+    },
+    {
+      "id": "GR-012",
+      "type": "regex_replace",
+      "pattern": "(\\d+)원정",
+      "replace": "\\1원",
+      "desc": "'원정'은 비표준, '원'으로 교정",
+      "source": "표준국어대사전"
+    }
+  ]
+}

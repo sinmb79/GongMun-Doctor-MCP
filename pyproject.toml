@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gongmun-doctor"
+version = "1.0.0"
+description = "HWPX 공문서 자동 교정 CLI 도구"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+dependencies = [
+    "python-hwpx>=2.8.0",
+]
+
+[project.scripts]
+gongmun-doctor = "gongmun_doctor.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+gongmun_doctor = ["rules/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "integration: marks tests that require real HWPX files (deselect with '-m \"not integration\"')",
+]
