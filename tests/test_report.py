@@ -86,3 +86,32 @@ class TestWriteReport:
         assert Path(path).exists()
         content = Path(path).read_text(encoding="utf-8")
         assert "공문닥터" in content
+
+
+# ── Task 1: HarmonySuggestion tests ──────────────────────────────────────────
+
+from gongmun_doctor.report.markdown import HarmonySuggestion
+
+
+def test_harmony_suggestion_dataclass():
+    s = HarmonySuggestion(
+        paragraph_index=2,
+        issue_type="redundancy",
+        original="미리 사전에 검토",
+        suggestion="사전에 검토",
+        reason="'미리'와 '사전'은 중복 표현",
+    )
+    assert s.paragraph_index == 2
+    assert s.issue_type == "redundancy"
+
+
+def test_report_with_harmony_suggestions():
+    from gongmun_doctor.report.markdown import CorrectionReport, generate_markdown
+    report = CorrectionReport(input_path="a.hwpx", output_path="b.hwpx")
+    report.harmony_suggestions = [
+        HarmonySuggestion(0, "redundancy", "미리 사전에", "사전에", "중복 표현"),
+    ]
+    md = generate_markdown(report)
+    assert "문장 조화" in md
+    assert "중복 표현" in md
+    assert "사전에" in md

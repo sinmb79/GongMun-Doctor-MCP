@@ -16,6 +16,15 @@ class CorrectionItem:
 
 
 @dataclass
+class HarmonySuggestion:
+    paragraph_index: int
+    issue_type: str      # "redundancy" | "complexity" | "passive" | "inconsistency"
+    original: str
+    suggestion: str
+    reason: str
+
+
+@dataclass
 class CorrectionReport:
     input_path: str
     output_path: str
@@ -23,6 +32,7 @@ class CorrectionReport:
     total_paragraphs: int = 0
     total_corrections: int = 0
     corrections: list[CorrectionItem] = field(default_factory=list)
+    harmony_suggestions: list[HarmonySuggestion] = field(default_factory=list)
     format_preserved: bool = True
     dry_run: bool = False
 
@@ -51,7 +61,6 @@ def generate_markdown(report: CorrectionReport) -> str:
     if not report.corrections:
         lines.append("교정 사항이 없습니다.")
     else:
-        # Group by paragraph index
         by_para: dict[int, list[CorrectionItem]] = {}
         for c in report.corrections:
             by_para.setdefault(c.paragraph_index, []).append(c)
@@ -68,6 +77,33 @@ def generate_markdown(report: CorrectionReport) -> str:
                     f"| **원문** | {c.original_text} |",
                     f"| **교정** | {c.corrected_text} |",
                     f"| **근거** | {c.rule_source} |",
+                    "",
+                ]
+
+    # L4 harmony suggestions (AI)
+    if report.harmony_suggestions:
+        type_labels = {
+            "redundancy": "중복 표현",
+            "complexity": "복잡한 문장",
+            "passive": "피동 남용",
+            "inconsistency": "표현 불일치",
+        }
+        by_h: dict[int, list[HarmonySuggestion]] = {}
+        for s in report.harmony_suggestions:
+            by_h.setdefault(s.paragraph_index, []).append(s)
+
+        lines += ["", "---", "", "## L4 — 문장 조화 제안 (AI)", ""]
+        for p_idx in sorted(by_h.keys()):
+            lines.append(f"### 문단 {p_idx}")
+            lines.append("")
+            for s in by_h[p_idx]:
+                lines += [
+                    "| 항목 | 내용 |",
+                    "|------|------|",
+                    f"| **유형** | {type_labels.get(s.issue_type, s.issue_type)} |",
+                    f"| **원문** | {s.original} |",
+                    f"| **제안** | {s.suggestion} |",
+                    f"| **이유** | {s.reason} |",
                     "",
                 ]
 
