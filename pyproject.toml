@@ -17,6 +17,12 @@ dependencies = [
 llm = [
     "llama-cpp-python>=0.2.0",
 ]
+hwp = [
+    "pywin32>=306",
+    "pystray>=0.19",
+    "Pillow>=10.0",
+    "keyboard>=0.13",
+]
 
 [project.scripts]
 gongmun-doctor = "gongmun_doctor.cli:main"
