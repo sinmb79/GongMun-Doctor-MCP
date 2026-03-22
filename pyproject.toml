@@ -23,6 +23,11 @@ hwp = [
     "Pillow>=10.0",
     "keyboard>=0.13",
 ]
+cloud = [
+    "anthropic>=0.25",
+    "openai>=1.0",
+    "google-generativeai>=0.5",
+]
 
 [project.scripts]
 gongmun-doctor = "gongmun_doctor.cli:main"
