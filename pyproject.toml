@@ -22,6 +22,7 @@ hwp = [
     "pystray>=0.19",
     "Pillow>=10.0",
     "keyboard>=0.13",
+    "pyperclip>=1.8",
 ]
 cloud = [
     "anthropic>=0.25",
@@ -37,7 +38,7 @@ gongmun-doctor-gui = "gongmun_doctor.gui:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-gongmun_doctor = ["rules/*.json"]
+gongmun_doctor = ["rules/*.json", "agents/administrative/templates/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

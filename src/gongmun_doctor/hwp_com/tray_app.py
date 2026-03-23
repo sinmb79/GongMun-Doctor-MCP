@@ -74,9 +74,18 @@ class TrayApp:
 
         kb.add_hotkey(self._hotkey, self._on_hotkey)
 
+        # Clipboard mode: separate hotkey Ctrl+Shift+C
+        try:
+            from gongmun_doctor.clipboard.shortcut import ClipboardShortcut
+            self._clipboard_shortcut = ClipboardShortcut(hotkey="ctrl+shift+c")
+            self._clipboard_shortcut.register()
+        except ImportError:
+            self._clipboard_shortcut = None
+
         menu = pystray.Menu(
             pystray.MenuItem("교정 실행 (변경추적)", lambda: self._trigger("track_changes")),
             pystray.MenuItem("교정 실행 (직접 적용)", lambda: self._trigger("direct")),
+            pystray.MenuItem("클립보드 교정 (Ctrl+Shift+C)", self._trigger_clipboard),
             pystray.Menu.SEPARATOR,
             pystray.MenuItem(lambda text: f"한글 상태: {self._status}", None, enabled=False),
             pystray.Menu.SEPARATOR,
@@ -144,6 +153,16 @@ class TrayApp:
         if self._icon:
             self._icon.title = f"공문닥터 — {self._status}"
 
+    def _trigger_clipboard(self) -> None:
+        """Run clipboard correction from tray menu."""
+        if self._clipboard_shortcut is not None:
+            threading.Thread(target=self._clipboard_shortcut._run, daemon=True).start()
+
     def _quit(self) -> None:
+        if self._clipboard_shortcut is not None:
+            try:
+                self._clipboard_shortcut.unregister()
+            except Exception:
+                pass
         if self._icon:
             self._icon.stop()
