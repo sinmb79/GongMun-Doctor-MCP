@@ -28,8 +28,9 @@ tests/fixtures/*_corrected.md
 .DS_Store
 Thumbs.db
 
-# Superpowers brainstorm session files
+# Superpowers brainstorm session files and internal planning docs
 .superpowers/
+docs/superpowers/
 
 # Local archive for non-GitHub artifacts
 _local_archive/
