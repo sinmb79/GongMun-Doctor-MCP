@@ -1,0 +1,349 @@
+{
+  "version": "1.0.0",
+  "collected_date": "2026-03-23",
+  "total": 50,
+  "categories": {
+    "일반행정": 15,
+    "건설/토목": 10,
+    "계약/조달": 10,
+    "인사/복무": 5,
+    "민원": 5,
+    "감사/점검": 5
+  },
+  "sources": [
+    {
+      "name": "행정안전부 행정업무운영편람",
+      "url": "https://www.mois.go.kr/frt/bbs/type001/commonSelectBoardArticle.do?bbsId=BBSMSTR_000000000012&nttId=83951"
+    },
+    {
+      "name": "국가법령정보센터 건설공사 사업관리방식 검토기준 및 업무수행지침",
+      "url": "https://www.law.go.kr/LSW/admRulInfoP.do?admRulSeq=2100000133829"
+    },
+    {
+      "name": "국가법령정보센터 공사계약일반조건(계약예규)",
+      "url": "https://www.law.go.kr/%ED%96%89%EC%A0%95%EA%B7%9C%EC%B9%99/(%EA%B3%84%EC%95%BD%EC%98%88%EA%B7%9C)%EA%B3%B5%EC%82%AC%EA%B3%84%EC%95%BD%EC%9D%BC%EB%B0%98%EC%A1%B0%EA%B1%B4"
+    },
+    {
+      "name": "국가법령정보센터 건설공사 설계변경 요청서(별지 제36호 서식)",
+      "url": "https://www.law.go.kr/flDownload.do?flSeq=151362051"
+    },
+    {
+      "name": "조달청 서식자료",
+      "url": "https://www.pps.go.kr/kor/content.do?key=00302"
+    },
+    {
+      "name": "찾기쉬운 생활법령정보 민원처리 통지",
+      "url": "https://easylaw.go.kr/CSP/CnpClsMain.laf?popMenu=ov&csmSeq=94&ccfNo=3&cciNo=2&cnpClsNo=3"
+    },
+    {
+      "name": "서울특별시 정보소통광장 공개문서(민원 회신)",
+      "url": "https://opengov.seoul.go.kr/sanction/view/?nid=15375675"
+    },
+    {
+      "name": "서울특별시 감사위원회 공개문서(감사결과 처분요구 통보)",
+      "url": "https://opengov.seoul.go.kr/sanction/15231440"
+    }
+  ],
+  "templates": [
+    {
+      "id": "gen-001-업무협조요청",
+      "name": "업무 협조 요청",
+      "category": "일반행정",
+      "file": "gen-001-업무협조요청.json"
+    },
+    {
+      "id": "gen-002-알림통보",
+      "name": "알림(통보) 공문",
+      "category": "일반행정",
+      "file": "gen-002-알림통보.json"
+    },
+    {
+      "id": "gen-003-회신",
+      "name": "회신 공문",
+      "category": "일반행정",
+      "file": "gen-003-회신.json"
+    },
+    {
+      "id": "gen-004-업무보고",
+      "name": "업무 보고",
+      "category": "일반행정",
+      "file": "gen-004-업무보고.json"
+    },
+    {
+      "id": "gen-005-자료요청",
+      "name": "자료 제출 요청",
+      "category": "일반행정",
+      "file": "gen-005-자료요청.json"
+    },
+    {
+      "id": "gen-006-회의개최알림",
+      "name": "회의 개최 알림",
+      "category": "일반행정",
+      "file": "gen-006-회의개최알림.json"
+    },
+    {
+      "id": "gen-007-위임전결통보",
+      "name": "위임 전결 사항 통보",
+      "category": "일반행정",
+      "file": "gen-007-위임전결통보.json"
+    },
+    {
+      "id": "gen-008-행사협조요청",
+      "name": "행사 협조 요청",
+      "category": "일반행정",
+      "file": "gen-008-행사협조요청.json"
+    },
+    {
+      "id": "gen-009-계획수립안내",
+      "name": "계획 수립 제출 안내",
+      "category": "일반행정",
+      "file": "gen-009-계획수립안내.json"
+    },
+    {
+      "id": "gen-010-인사발령통보",
+      "name": "인사 발령 통보",
+      "category": "일반행정",
+      "file": "gen-010-인사발령통보.json"
+    },
+    {
+      "id": "gen-011-예산배정통보",
+      "name": "예산 배정 통보",
+      "category": "일반행정",
+      "file": "gen-011-예산배정통보.json"
+    },
+    {
+      "id": "gen-012-시행결과보고",
+      "name": "시행 결과 보고",
+      "category": "일반행정",
+      "file": "gen-012-시행결과보고.json"
+    },
+    {
+      "id": "gen-013-규정개정안내",
+      "name": "규정 개정 안내",
+      "category": "일반행정",
+      "file": "gen-013-규정개정안내.json"
+    },
+    {
+      "id": "gen-014-교육훈련안내",
+      "name": "교육훈련 안내",
+      "category": "일반행정",
+      "file": "gen-014-교육훈련안내.json"
+    },
+    {
+      "id": "gen-015-의견조회",
+      "name": "의견 조회",
+      "category": "일반행정",
+      "file": "gen-015-의견조회.json"
+    },
+    {
+      "id": "con-001-착공알림",
+      "name": "공사 착공 알림",
+      "category": "건설/토목",
+      "file": "con-001-착공알림.json"
+    },
+    {
+      "id": "con-002-준공알림",
+      "name": "공사 준공 알림 및 준공검사 요청",
+      "category": "건설/토목",
+      "file": "con-002-준공알림.json"
+    },
+    {
+      "id": "con-003-설계변경요청",
+      "name": "설계 변경 요청",
+      "category": "건설/토목",
+      "file": "con-003-설계변경요청.json"
+    },
+    {
+      "id": "con-004-준공검사결과통보",
+      "name": "준공검사 결과 통보",
+      "category": "건설/토목",
+      "file": "con-004-준공검사결과통보.json"
+    },
+    {
+      "id": "con-005-공사중지명령",
+      "name": "공사 중지 명령",
+      "category": "건설/토목",
+      "file": "con-005-공사중지명령.json"
+    },
+    {
+      "id": "con-006-공정보고요청",
+      "name": "공사 공정 현황 보고 요청",
+      "category": "건설/토목",
+      "file": "con-006-공정보고요청.json"
+    },
+    {
+      "id": "con-007-공사재개신청",
+      "name": "공사 재개 신청",
+      "category": "건설/토목",
+      "file": "con-007-공사재개신청.json"
+    },
+    {
+      "id": "con-008-준공기한연장신청",
+      "name": "준공 기한 연장 신청",
+      "category": "건설/토목",
+      "file": "con-008-준공기한연장신청.json"
+    },
+    {
+      "id": "con-009-하자보수통보",
+      "name": "하자 보수 이행 통보",
+      "category": "건설/토목",
+      "file": "con-009-하자보수통보.json"
+    },
+    {
+      "id": "con-010-안전점검결과통보",
+      "name": "공사 현장 안전 점검 결과 통보",
+      "category": "건설/토목",
+      "file": "con-010-안전점검결과통보.json"
+    },
+    {
+      "id": "proc-001-입찰공고",
+      "name": "입찰 공고",
+      "category": "계약/조달",
+      "file": "proc-001-입찰공고.json"
+    },
+    {
+      "id": "proc-002-낙찰자결정통보",
+      "name": "낙찰자 결정 통보",
+      "category": "계약/조달",
+      "file": "proc-002-낙찰자결정통보.json"
+    },
+    {
+      "id": "proc-003-계약체결요청",
+      "name": "계약 체결 요청",
+      "category": "계약/조달",
+      "file": "proc-003-계약체결요청.json"
+    },
+    {
+      "id": "proc-004-계약해지통보",
+      "name": "계약 해지 통보",
+      "category": "계약/조달",
+      "file": "proc-004-계약해지통보.json"
+    },
+    {
+      "id": "proc-005-기성검사요청",
+      "name": "기성 검사 요청",
+      "category": "계약/조달",
+      "file": "proc-005-기성검사요청.json"
+    },
+    {
+      "id": "proc-006-정산요청",
+      "name": "사업비 정산 요청",
+      "category": "계약/조달",
+      "file": "proc-006-정산요청.json"
+    },
+    {
+      "id": "proc-007-수의계약요청",
+      "name": "수의 계약 요청",
+      "category": "계약/조달",
+      "file": "proc-007-수의계약요청.json"
+    },
+    {
+      "id": "proc-008-용역계약요청",
+      "name": "용역 계약 체결 요청",
+      "category": "계약/조달",
+      "file": "proc-008-용역계약요청.json"
+    },
+    {
+      "id": "proc-009-보조금교부신청",
+      "name": "보조금 교부 신청",
+      "category": "계약/조달",
+      "file": "proc-009-보조금교부신청.json"
+    },
+    {
+      "id": "proc-010-물품구매요청",
+      "name": "물품 구매 요청",
+      "category": "계약/조달",
+      "file": "proc-010-물품구매요청.json"
+    },
+    {
+      "id": "hr-001-출장결과보고",
+      "name": "출장 결과 보고",
+      "category": "인사/복무",
+      "file": "hr-001-출장결과보고.json"
+    },
+    {
+      "id": "hr-002-휴가사용보고",
+      "name": "휴가 사용 보고",
+      "category": "인사/복무",
+      "file": "hr-002-휴가사용보고.json"
+    },
+    {
+      "id": "hr-003-겸직허가신청",
+      "name": "겸직 허가 신청",
+      "category": "인사/복무",
+      "file": "hr-003-겸직허가신청.json"
+    },
+    {
+      "id": "hr-004-국내출장명령",
+      "name": "국내 출장 명령",
+      "category": "인사/복무",
+      "file": "hr-004-국내출장명령.json"
+    },
+    {
+      "id": "hr-005-직위해제통보",
+      "name": "직위 해제 통보",
+      "category": "인사/복무",
+      "file": "hr-005-직위해제통보.json"
+    },
+    {
+      "id": "civil-001-민원회신",
+      "name": "민원 회신",
+      "category": "민원",
+      "file": "civil-001-민원회신.json"
+    },
+    {
+      "id": "civil-002-민원처리기간연장통보",
+      "name": "민원 처리 기간 연장 통보",
+      "category": "민원",
+      "file": "civil-002-민원처리기간연장통보.json"
+    },
+    {
+      "id": "civil-003-민원이첩통보",
+      "name": "민원 이첩 통보",
+      "category": "민원",
+      "file": "civil-003-민원이첩통보.json"
+    },
+    {
+      "id": "civil-004-민원처리결과통보",
+      "name": "민원 처리 결과 통보(기각)",
+      "category": "민원",
+      "file": "civil-004-민원처리결과통보.json"
+    },
+    {
+      "id": "civil-005-질의회신",
+      "name": "법령 해석 질의 회신",
+      "category": "민원",
+      "file": "civil-005-질의회신.json"
+    },
+    {
+      "id": "audit-001-감사결과통보",
+      "name": "감사 결과 통보",
+      "category": "감사/점검",
+      "file": "audit-001-감사결과통보.json"
+    },
+    {
+      "id": "audit-002-시정조치요구",
+      "name": "시정 조치 요구",
+      "category": "감사/점검",
+      "file": "audit-002-시정조치요구.json"
+    },
+    {
+      "id": "audit-003-시정조치결과보고",
+      "name": "시정 조치 결과 보고",
+      "category": "감사/점검",
+      "file": "audit-003-시정조치결과보고.json"
+    },
+    {
+      "id": "audit-004-지도점검알림",
+      "name": "지도 점검 실시 알림",
+      "category": "감사/점검",
+      "file": "audit-004-지도점검알림.json"
+    },
+    {
+      "id": "audit-005-점검결과보고",
+      "name": "점검 결과 보고",
+      "category": "감사/점검",
+      "file": "audit-005-점검결과보고.json"
+    }
+  ]
+}
