@@ -5,13 +5,12 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
-from hwpx.document import HwpxDocument
-
 from gongmun_doctor.rules.loader import CorrectionRule
 from gongmun_doctor.report.markdown import CorrectionItem, CorrectionReport
 
 if TYPE_CHECKING:
     from gongmun_doctor.llm.harmony import HarmonyChecker
+    from hwpx.document import HwpxDocument
 
 
 def _apply_rule_to_text(text: str, rule: CorrectionRule) -> tuple[str, int]:

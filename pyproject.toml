@@ -29,10 +29,14 @@ cloud = [
     "openai>=1.0",
     "google-generativeai>=0.5",
 ]
+mcp = [
+    "mcp[cli]>=1.0,<2",
+]
 
 [project.scripts]
 gongmun-doctor = "gongmun_doctor.cli:main"
 gongmun-doctor-gui = "gongmun_doctor.gui:main"
+gongmun-doctor-mcp = "gongmun_doctor.mcp.server:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
