@@ -1,180 +1,349 @@
-# 왜 이 저장소가 필요한가
+# GongMun Doctor MCP
 
-Meta description: 민감한 공문을 외부 업로드 없이 로컬에서 교정하도록 돕는 GongMun Doctor MCP 서버.
+**AI가 공문서를 로컬에서 안전하게 교정합니다**
+**AI-powered Korean official document proofreading -- 100% local, no cloud required**
 
-Labels: mcp, gongmun-doctor, hwpx, 보안, 로컬우선, codex, claude-code
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python 3.12+](https://img.shields.io/badge/Python-3.12+-green.svg)](https://python.org)
+[![MCP](https://img.shields.io/badge/MCP-1.0-orange.svg)](https://modelcontextprotocol.io)
 
-22B Labs · The 4th Path · GitHub: sinmb79
+---
 
-대부분의 문서 자동화 도구는 편리하지만, 보안이 엄격한 환경에서는 그 편리함이 곧 위험이 됩니다. 파일을 외부로 보내야 하거나, API 키를 별도로 다뤄야 하거나, 사용자가 직접 스크립트를 짜야 한다면 실제 현장에서는 오래 못 갑니다. 이 저장소는 그 불편한 현실에서 출발합니다.
+## 소개 | Introduction
 
-`GongMun Doctor MCP`는 기존 GongMun Doctor의 규칙 기반 공문 교정 엔진을 **로컬 MCP 서버**로 감싼 프로젝트입니다. 그래서 Codex, Claude Code 같은 에이전트형 도구가 “이 문서 교정해줘”라고 자연어로 요청받아도, 실제 교정은 사용자의 PC 안에서 처리할 수 있습니다.
+GongMun Doctor MCP는 한국 공문서(.hwpx/.hwp)를 **로컬 PC에서** 자동 교정하는 MCP 서버입니다. Claude, Codex 등 AI 에이전트에게 "이 문서 교정해줘"라고 말하면, 파일이 외부로 나가지 않고 내 PC 안에서 교정이 완료됩니다.
 
-핵심은 화려함이 아니라 경계입니다. 문서는 밖으로 나가지 않고, 기본 도구는 네트워크를 호출하지 않으며, 클라우드 API 키 없이도 시작할 수 있습니다.
+GongMun Doctor MCP is a local MCP server that proofreads Korean official documents (.hwpx/.hwp) entirely on your PC. When you ask an AI agent like Claude or Codex to "proofread this document," the file never leaves your machine.
 
-## ⚡ 30초 요약
+> **보안 원칙 | Security First**: 문서는 밖으로 나가지 않습니다. 네트워크 호출 없음. 클라우드 API 키 불필요.
+> Documents stay local. No network calls. No cloud API keys needed.
 
-- 이 저장소는 공문 교정 엔진을 MCP 도구로 바꿉니다.
-- 기본 동작은 `로컬 파일 경로만`, `네트워크 호출 없음`, `API 키 불필요`입니다.
-- Codex, Claude Code, Claude Desktop에서 붙여 쓸 수 있도록 준비했습니다.
-- 한 파일 교정, 폴더 일괄 교정, 규칙 조회, 보고서 읽기까지 바로 가능합니다.
-- 클라우드 LLM 분석이나 한글 COM 자동조작은 일부러 기본 범위에서 뺐습니다.
+---
 
-개발자가 아니어도 이해해야 하는 요점은 하나입니다. 이 프로젝트는 “AI가 공문을 대신 읽어주는 것”보다 “민감한 문서를 안전하게 다루는 것”을 먼저 설계했습니다.
+## 이런 분들에게 유용합니다 | Who Is This For?
 
-## 🔒 왜 로컬 MCP가 중요한가
+| 대상 | 활용 예시 |
+|------|----------|
+| **공무원** | 기안 작성 후 맞춤법/공문서체 자동 교정, 보고 전 최종 검수 |
+| **공공기관 직원** | 업무협조 요청, 민원회신 등 공문 템플릿 자동 생성 |
+| **행정사/법무사** | 대량 문서 일괄 교정, 교정 보고서 자동 생성 |
+| **공문 작성이 처음인 분** | 50종 행정문서 템플릿으로 올바른 양식 학습 |
 
-보안이 엄격한 조직에서 문제는 기술이 부족해서가 아니라, 기술이 조직의 제약을 무시해서 생깁니다.
+| Who | Use Case |
+|-----|----------|
+| **Government officials** | Auto-proofread drafts before submission |
+| **Public institution staff** | Generate official document templates (cooperation requests, civil responses, etc.) |
+| **Administrative professionals** | Batch-correct large volumes of documents with reports |
+| **Beginners** | Learn proper official document formatting with 50 built-in templates |
 
-- CLI만 있으면 사용자는 명령어를 직접 기억해야 합니다.
-- GUI만 있으면 다른 에이전트와 연결이 약합니다.
-- 클라우드 API에 기대면 승인, 키 관리, 반출 우려가 늘어납니다.
+---
 
-로컬 MCP는 이 셋 사이의 절충점입니다.
+## 주요 기능 | Key Features
 
-- 사용자는 자연어로 요청합니다.
-- 에이전트는 도구를 구조적으로 호출합니다.
-- 실제 파일 처리는 로컬에서 끝납니다.
+### 3단계 교정 규칙 | 3-Layer Correction Rules
 
-즉, 편의성은 올리되 반출 경로는 늘리지 않는 방향입니다.
+| 레이어 Layer | 내용 Description | 예시 Example |
+|-------------|-----------------|-------------|
+| **L1 맞춤법** | 띄어쓰기, 맞춤법 교정 | "시행알림" -> "시행 알림" |
+| **L2 문법** | 조사 오류, 병기 제거 | "을/를" -> "을" (공문서는 조사 병기 금지) |
+| **L3 공문서체** | 행정업무운영편람 기준 서식 교정 | "관련하여," -> "관련하여" (접속표현 뒤 쉼표 생략) |
 
-## 🧰 지금 바로 되는 것
+### 10개 MCP 도구 | 10 MCP Tools
 
-현재 제공하는 MCP 도구는 아래와 같습니다.
+| # | 도구 Tool | 설명 Description |
+|---|-----------|-----------------|
+| 1 | `correct_document` | 단일 문서 교정 / Correct one document |
+| 2 | `correct_documents_in_folder` | 폴더 내 문서 일괄 교정 / Batch correct all documents in a folder |
+| 3 | `list_rules` | 교정 규칙 목록 조회 / List correction rules |
+| 4 | `get_correction_report` | 교정 보고서 조회 / Read correction report |
+| 5 | `preview_text_corrections` | 텍스트 교정 미리보기 / Preview corrections without touching files |
+| 6 | `list_document_templates` | 행정문서 템플릿 목록 / List document templates |
+| 7 | `match_document_templates` | 키워드로 템플릿 검색 / Search templates by keyword |
+| 8 | `get_template_variables` | 템플릿 입력 변수 조회 / Show required template variables |
+| 9 | `render_document_template` | 템플릿 렌더링 (문서 생성) / Render template with values |
+| 10 | `get_server_info` | 서버 정보 조회 / Server info |
 
-- `correct_document(file_path, dry_run=False, report=False)`
-- `correct_documents_in_folder(folder_path, dry_run=False, report=False, recursive=False)`
-- `list_rules(layer=None)`
-- `get_correction_report(file_path)`
-- `preview_text_corrections(text, layers=None)`
-- `list_document_templates(category=None)`
-- `match_document_templates(query)`
-- `get_template_variables(template_id)`
-- `render_document_template(template_id, values)`
+### 50종 행정문서 템플릿 | 50 Administrative Templates
 
-실무적으로 보면 중요한 도구는 앞의 네 개입니다. 나머지는 템플릿 자동화와 설명 보강용입니다.
+6개 분야에 걸쳐 실무에서 바로 쓸 수 있는 템플릿을 제공합니다:
 
-## 🚀 처음 시작하는 사람을 위한 가장 쉬운 순서
+| 분야 Category | 템플릿 수 | 예시 Examples |
+|--------------|---------|-------------|
+| **일반행정** (gen) | 15종 | 업무협조요청, 알림통보, 회신, 업무보고, 자료요청, 회의개최알림 등 |
+| **감사** (audit) | 5종 | 감사결과통보, 시정조치요구, 지도점검알림 등 |
+| **민원** (civil) | 5종 | 민원회신, 처리기간연장통보, 이첩통보, 질의회신 등 |
+| **건설공사** (con) | 10종 | 착공알림, 준공알림, 설계변경요청, 하자보수통보 등 |
+| **인사** (hr) | 5종 | 출장결과보고, 휴가사용보고, 겸직허가신청, 직위해제통보 등 |
+| **계약조달** (proc) | 10종 | 입찰공고, 낙찰자결정통보, 계약체결요청, 보조금교부신청 등 |
 
-먼저 Python 3.12 또는 3.13 환경을 권장합니다. Python 3.14에서는 `python-hwpx` 계열 설치가 `lxml` 빌드 문제로 막힐 수 있습니다.
+---
 
-그 다음 PowerShell에서 이 저장소 루트로 이동한 뒤:
+## 빠른 시작 가이드 | Quick Start Guide
+
+### 1단계: 설치 | Step 1: Install
+
+> Python **3.12 또는 3.13**을 권장합니다. 3.14에서는 `lxml` 빌드 문제가 발생할 수 있습니다.
+> Python **3.12 or 3.13** recommended. 3.14 may have `lxml` build issues.
 
 ```bash
+# 저장소 클론 | Clone the repository
+git clone https://github.com/sinmb79/GongMun-Doctor-MCP.git
+cd GongMun-Doctor-MCP
+
+# MCP 라이브러리 설치 | Install MCP library
 python -m pip install "mcp[cli]>=1.0,<2"
+
+# GongMun Doctor 설치 (개발 모드) | Install in dev mode
 python -m pip install -e . --no-deps
 ```
 
-여기까지 되면 MCP 서버 자체는 뜰 수 있습니다.
-
-서버를 직접 확인하려면:
+### 2단계: 서버 실행 확인 | Step 2: Verify Server
 
 ```bash
+# 서버 직접 실행 | Run server directly
 python -m gongmun_doctor.mcp.server
-```
 
-도구 목록을 눈으로 보고 싶다면:
-
-```bash
+# MCP Inspector로 도구 목록 확인 (선택) | Inspect tools visually (optional)
 npx -y @modelcontextprotocol/inspector python -m gongmun_doctor.mcp.server
 ```
 
-이 단계가 중요한 이유는 “설치가 되었는가”와 “클라이언트가 붙을 준비가 되었는가”가 다르기 때문입니다. MCP는 실행보다 연결에서 더 자주 막힙니다.
+### 3단계: AI 클라이언트 연결 | Step 3: Connect Your AI Client
 
-## 🖥️ 어떤 클라이언트에서 쓸 수 있나
-
-### Codex
-
-가장 단순합니다. 로컬에서 확인한 CLI 문법 기준으로 아래 명령으로 등록하면 됩니다.
+#### Codex (가장 간단 | Simplest)
 
 ```bash
 codex mcp add gongmun-doctor -- python -m gongmun_doctor.mcp.server
 ```
 
-등록 확인:
-
+확인:
 ```bash
-codex mcp get gongmun-doctor
 codex mcp list
 ```
 
-### Claude Code
-
-개인용으로 붙일 때는:
+#### Claude Code
 
 ```bash
 claude mcp add --transport stdio gongmun-doctor -- python -m gongmun_doctor.mcp.server
 ```
 
-프로젝트 전체가 함께 쓰게 하려면 `.mcp.json` 기반 프로젝트 스코프를 쓰는 편이 좋습니다. 자세한 단계는 [docs/client-setup-ko.md](docs/client-setup-ko.md)에 정리해 두었습니다.
+프로젝트 단위로 설정하려면 `.mcp.json`을 사용하세요. 자세한 내용은 [docs/client-setup-ko.md](docs/client-setup-ko.md)를 참고하세요.
 
-### Claude Desktop
+#### Claude Desktop
 
-현재 Anthropic은 로컬 MCP를 **데스크톱 확장(.mcpb)** 흐름으로 더 강하게 밀고 있습니다. 이 저장소는 아직 `.mcpb` 패키지까지 만들지는 않았고, 대신 수동 stdio 연결 예시를 제공합니다.
+수동 stdio 연결 예시는 [examples/claude_desktop_config.json](examples/claude_desktop_config.json)을 참고하세요.
 
-즉, 지금은 “개발자용 수동 연결” 단계이고, 나중에 필요하면 “한 번 클릭 설치용 데스크톱 확장” 단계로 가면 됩니다.
+---
 
-## ✅ 실제로 이렇게 쓰면 된다
+## 실전 사용 예시 | Real-World Usage Examples
 
-한 파일만 먼저 안전하게 보고 싶을 때:
+AI 에이전트에 연결한 후, 자연어로 요청하면 됩니다. 도구 이름을 외울 필요가 없습니다.
 
-- “`D:\문서\공문.hwpx`를 `dry_run`으로 먼저 검사해줘.”
+After connecting to your AI agent, just ask in natural language. No need to memorize tool names.
 
-한 폴더를 한 번에 돌리고 싶을 때:
+### 예시 1: 단일 문서 교정 | Example 1: Correct One Document
 
-- “`D:\문서\주간보고` 폴더 안의 `.hwpx`를 전부 교정해줘.”
+**이렇게 말하세요 | Say this:**
+```
+D:\문서\공문.hwpx를 dry_run으로 먼저 검사해줘
+```
 
-규칙부터 확인하고 싶을 때:
+**AI가 수행하는 작업 | What happens:**
 
-- “현재 맞춤법 레이어 규칙만 보여줘.”
+`correct_document(file_path="D:\\문서\\공문.hwpx", dry_run=True)` 호출
 
-보고서를 다시 읽고 싶을 때:
+```json
+{
+  "status": "dry_run_complete",
+  "file_path": "D:\\문서\\공문.hwpx",
+  "corrections": [
+    {"rule": "SP-001", "layer": "L1_spelling", "before": "시행알림", "after": "시행 알림"},
+    {"rule": "GR-001", "layer": "L2_grammar", "before": "을/를", "after": "을"},
+    {"rule": "OS-002", "layer": "L3_official_style", "before": "관련 :", "after": "관련:"}
+  ],
+  "total_corrections": 3
+}
+```
 
-- “방금 생성한 교정 보고서를 다시 열어 보여줘.”
+교정 내용을 확인한 뒤 실제 적용:
+```
+확인했어. 실제로 교정해줘.
+```
 
-좋은 MCP는 사용자가 도구 이름을 외우게 하지 않습니다. 사용자는 의도를 말하고, 에이전트가 적절한 도구를 고르는 쪽이 맞습니다.
+### 예시 2: 폴더 일괄 교정 | Example 2: Batch Correct a Folder
 
-## 🛠️ 자주 막히는 지점
+```
+D:\문서\주간보고 폴더 안의 .hwpx를 전부 교정하고 보고서도 만들어줘
+```
 
-### 1. Python은 있는데 문서 교정이 안 될 때
+`correct_documents_in_folder(folder_path="D:\\문서\\주간보고", report=True)` 호출 -- 폴더 내 모든 .hwpx 파일을 교정하고 각각의 교정 보고서(Markdown)를 생성합니다.
 
-MCP 서버는 떠도, 실제 `.hwpx` 문서 교정에는 `python-hwpx` 런타임이 필요합니다. 그래서 “서버 실행 성공”과 “문서 교정 성공”은 별개입니다.
+### 예시 3: 교정 규칙 확인 | Example 3: Check Rules
 
-### 2. Windows에서 실행 파일을 못 찾을 때
+```
+맞춤법 레이어 규칙만 보여줘
+```
 
-`python`, `codex`, `claude` 명령이 PATH에 없으면 전체가 멈춥니다. 이런 경우에는 실행 파일의 전체 경로를 써야 합니다.
+`list_rules(layer="L1_spelling")` 호출:
 
-### 3. Claude Code에서 프로젝트 서버 승인이 뜰 때
+```json
+[
+  {"id": "SP-001", "search": "시행알림", "replace": "시행 알림", "desc": "합성어가 아닌 경우 띄어쓰기"},
+  {"id": "SP-002", "search": "참고 하시기", "replace": "참고하시기", "desc": "'참고하다'는 한 단어이므로 붙여 씀"},
+  {"id": "SP-003", "search": "보수 공사", "replace": "보수공사", "desc": "'보수공사'는 한 단어이므로 붙여 씀"}
+]
+```
 
-이건 오류가 아니라 정상 동작입니다. 프로젝트의 `.mcp.json` 서버는 처음 사용할 때 승인 과정을 거치는 것이 맞습니다.
+### 예시 4: 공문 템플릿으로 문서 작성 | Example 4: Generate Document from Template
 
-### 4. Claude Desktop에서 바로 안 붙을 때
+```
+업무 협조 요청 공문을 만들어줘
+```
 
-현재 공식 방향은 데스크톱 확장 쪽이므로, 수동 설정 방식은 환경마다 차이가 있을 수 있습니다. 그래서 이 저장소에서는 Claude Desktop을 “가능한 대상”으로 두되, 주력 연결 대상은 Codex와 Claude Code로 잡고 있습니다.
+AI가 자동으로 적절한 템플릿을 찾고, 필요한 정보를 물어본 뒤 문서를 생성합니다:
 
-## 📚 처음 사용자용 상세 안내
+```
+수신기관: ○○시 도시건설국장
+제목: 도시계획 변경 관련 업무 협조 요청
+관련문서: 도시계획과-1234(2026.03.10.)
+협조사항: 도시계획 변경안 검토
+기한: 2026. 4. 10.
+```
 
-처음부터 끝까지 따라가는 자세한 설명은 아래 문서에 정리했습니다.
+**생성 결과 | Output:**
+
+```
+수신 ○○시 도시건설국장
+(경유)
+제목 도시계획 변경 관련 업무 협조 요청
+
+1. 관련: 도시계획과-1234(2026.03.10.)
+
+2. 위 호와 관련하여 도시계획 변경안 검토에 대한 귀 기관의
+   적극적인 협조를 요청합니다.
+
+3. 협조 요청 사항은 다음과 같습니다.
+   가. 협조 내용: 도시계획 변경안 검토
+   나. 회신 기한: 2026. 4. 10.까지
+   다. 담당자: 도시계획과 담당자 홍길동
+
+붙임 협조 요청 자료 1부.  끝.
+```
+
+### 예시 5: 텍스트 미리보기 | Example 5: Preview Text Corrections
+
+```
+"관련하여, 을/를 첨부 합니다" 이 문장 교정해줘
+```
+
+`preview_text_corrections(text="관련하여, 을/를 첨부 합니다")` 호출 -- 파일 없이 텍스트만으로 교정 결과를 미리 확인할 수 있습니다.
+
+---
+
+## 프로젝트 구조 | Project Structure
+
+```
+GongMun-Doctor-MCP/
+|-- src/gongmun_doctor/
+|   |-- mcp/                   # MCP 서버 | MCP server
+|   |   |-- server.py           #   서버 정의 (10개 도구)
+|   |   |-- services.py         #   비즈니스 로직
+|   |   +-- models.py           #   데이터 모델
+|   |-- rules/                  # 교정 규칙 | Correction rules
+|   |   |-- L1_spelling.json    #   맞춤법/띄어쓰기
+|   |   |-- L2_grammar.json     #   문법 (조사 오류 등)
+|   |   +-- L3_official_style.json  #   공문서체
+|   |-- agents/administrative/  # 행정문서 템플릿 | Templates
+|   |   +-- templates/          #   50종 JSON 템플릿
+|   |-- parser/                 # HWPX/HWP 파서 | Document parser
+|   |-- engine.py               # 교정 엔진 | Correction engine
+|   +-- report/                 # 보고서 생성 | Report generator
+|-- docs/                       # 설정 가이드 | Setup guides
+|-- examples/                   # 클라이언트 설정 예시 | Client config examples
++-- tests/                      # 테스트 | Tests
+```
+
+---
+
+## 자주 묻는 질문 | FAQ
+
+### 서버는 뜨는데 문서 교정이 안 돼요
+
+MCP 서버 실행과 문서 교정은 별개입니다. 실제 `.hwpx` 문서 교정에는 `python-hwpx` 런타임이 필요합니다:
+
+```bash
+python -m pip install "python-hwpx>=2.8.0"
+```
+
+### Windows에서 명령어를 못 찾아요
+
+`python`, `codex`, `claude` 명령이 PATH에 없는 경우입니다. 전체 경로를 사용하세요:
+
+```bash
+# 예시: Python 전체 경로
+C:\Users\사용자\AppData\Local\Programs\Python\Python312\python.exe -m gongmun_doctor.mcp.server
+```
+
+### Claude Code에서 승인 팝업이 떠요
+
+정상 동작입니다. `.mcp.json` 기반 프로젝트 서버는 처음 사용 시 승인 과정을 거칩니다.
+
+### Claude Desktop에서 연결이 안 돼요
+
+현재 주력 지원 대상은 Codex와 Claude Code입니다. Claude Desktop은 수동 stdio 연결로 가능하지만 환경에 따라 차이가 있을 수 있습니다.
+
+---
+
+## 테스트 실행 | Running Tests
+
+```bash
+pytest tests -q
+```
+
+실제 HWPX 파일이 필요한 통합 테스트는 별도 마커로 관리합니다:
+
+```bash
+# 통합 테스트 제외 | Skip integration tests
+pytest tests -q -m "not integration"
+```
+
+---
+
+## 보안 설계 원칙 | Security Design Principles
+
+| 원칙 Principle | 설명 Description |
+|---------------|-----------------|
+| **로컬 우선** | 모든 파일 처리는 사용자 PC 내에서 완료 |
+| **네트워크 없음** | 기본 동작에 네트워크 호출 없음 |
+| **API 키 불필요** | 클라우드 API 키 없이 시작 가능 |
+| **경계 명확** | 로컬 처리와 외부 통신의 경계를 명확히 구분 |
+
+> 클라우드 LLM 분석, 한글 COM 자동조작 등 확장 기능은 선택적(opt-in)이며 기본 범위에 포함되지 않습니다.
+> Cloud LLM analysis and HWP COM automation are opt-in extensions, not included in the default scope.
+
+---
+
+## 참고 문서 | References
 
 - [클라이언트 연결 가이드 (한글)](docs/client-setup-ko.md)
 - [MCP 준비 메모](docs/mcp-preparation.md)
-- [Claude Desktop 예시 설정](examples/claude_desktop_config.json)
-- [Claude Code 예시 `.mcp.json`](examples/claude_code.mcp.json)
-- [Codex 예시 TOML 조각](examples/codex-config.toml)
+- [Claude Desktop 설정 예시](examples/claude_desktop_config.json)
+- [Claude Code .mcp.json 예시](examples/claude_code.mcp.json)
+- [Codex 설정 예시](examples/codex-config.toml)
 
-## 🔎 참고 문서
+---
 
-이 저장소의 연결 설명은 아래 자료를 바탕으로 정리했습니다.
+## 라이선스 | License
 
-- Claude Code MCP 문서
-- Claude Code 설정 문서
-- Claude Desktop 로컬 MCP 시작 문서
-- OpenAI Codex 관련 공식 자료와 로컬 `codex mcp --help` 확인 결과
+MIT License -- 자유롭게 사용, 수정, 배포할 수 있습니다.
 
-최신 링크는 아래 상세 가이드 문서에 함께 적어 두었습니다.
+MIT License -- Free to use, modify, and distribute.
 
-## 🌱 만드는 철학
+---
 
-좋은 자동화는 사람을 압도하지 않습니다. 처음 쓰는 사람도 이해할 수 있어야 하고, 보안팀이 봐도 설명 가능해야 하며, 문제가 생겼을 때 어디까지가 로컬이고 어디서부터가 외부인지 바로 말할 수 있어야 합니다.
+## 만든 사람 | Author
 
-도구가 똑똑한 것보다, 경계가 정직한 것이 더 오래 갑니다.
+**22B Labs** (sinmb79) -- The 4th Path
+
+문의사항이나 기여는 [Issues](https://github.com/sinmb79/GongMun-Doctor-MCP/issues)를 이용해 주세요.
+
+For questions or contributions, please use [Issues](https://github.com/sinmb79/GongMun-Doctor-MCP/issues).
