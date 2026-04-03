@@ -54,6 +54,23 @@ def create_mcp_server() -> FastMCP:
         return asdict(service.get_correction_report(file_path=file_path))
 
     @mcp.tool()
+    def correct_documents_in_folder(
+        folder_path: str,
+        dry_run: bool = False,
+        report: bool = False,
+        recursive: bool = False,
+    ) -> dict:
+        """Correct every local HWPX/HWP document in a folder."""
+        return asdict(
+            service.correct_documents_in_folder(
+                folder_path=folder_path,
+                dry_run=dry_run,
+                report=report,
+                recursive=recursive,
+            )
+        )
+
+    @mcp.tool()
     def preview_text_corrections(
         text: str,
         layers: list[str] | None = None,

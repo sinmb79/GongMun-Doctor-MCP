@@ -11,4 +11,3 @@ def test_create_mcp_server():
     server = create_mcp_server()
 
     assert server is not None
-

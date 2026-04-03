@@ -61,6 +61,7 @@
 
 - `get_server_info`
 - `correct_document`
+- `correct_documents_in_folder`
 - `list_rules`
 - `get_correction_report`
 - `preview_text_corrections`

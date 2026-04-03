@@ -12,6 +12,8 @@ from gongmun_doctor.agents.administrative.template_engine import TemplateEngine
 from gongmun_doctor.engine import correct_document as apply_document_corrections
 from gongmun_doctor.engine import correct_text
 from gongmun_doctor.mcp.models import (
+    BatchDocumentCorrectionItem,
+    BatchDocumentCorrectionResult,
     CorrectionReportFile,
     CorrectionPreviewItem,
     DocumentCorrectionResult,
@@ -206,6 +208,73 @@ class GongmunDoctorMcpService:
             resolved_report_path=str(report_path),
             exists=True,
             markdown=report_path.read_text(encoding="utf-8"),
+        )
+
+    def correct_documents_in_folder(
+        self,
+        folder_path: str,
+        dry_run: bool = False,
+        report: bool = False,
+        recursive: bool = False,
+    ) -> BatchDocumentCorrectionResult:
+        folder = self._normalize_local_path(folder_path)
+        if not folder.exists():
+            raise FileNotFoundError(f"folder not found: {folder}")
+        if not folder.is_dir():
+            raise NotADirectoryError(f"expected a folder path, got file: {folder}")
+
+        pattern = "**/*" if recursive else "*"
+        candidates = sorted(
+            path
+            for path in folder.glob(pattern)
+            if path.is_file() and path.suffix.lower() in {".hwpx", ".hwp"}
+        )
+
+        items: list[BatchDocumentCorrectionItem] = []
+        total_corrections = 0
+        succeeded_files = 0
+        failed_files = 0
+
+        for path in candidates:
+            try:
+                result = self.correct_document(
+                    file_path=str(path),
+                    dry_run=dry_run,
+                    report=report,
+                )
+            except Exception as exc:
+                failed_files += 1
+                items.append(
+                    BatchDocumentCorrectionItem(
+                        file_path=str(path),
+                        success=False,
+                        error=str(exc),
+                    )
+                )
+                continue
+
+            succeeded_files += 1
+            total_corrections += result.total_corrections
+            items.append(
+                BatchDocumentCorrectionItem(
+                    file_path=str(path),
+                    success=True,
+                    total_corrections=result.total_corrections,
+                    output_path=result.output_path,
+                    report_path=result.report_path,
+                )
+            )
+
+        return BatchDocumentCorrectionResult(
+            requested_folder_path=str(folder),
+            recursive=recursive,
+            dry_run=dry_run,
+            report=report,
+            discovered_files=len(candidates),
+            succeeded_files=succeeded_files,
+            failed_files=failed_files,
+            total_corrections=total_corrections,
+            items=items,
         )
 
     def list_templates(self, category: str | None = None) -> list[TemplateInfo]:

@@ -151,3 +151,52 @@ def test_get_correction_report_returns_missing_state(tmp_path: Path):
 
     assert stored.exists is False
     assert stored.markdown is None
+
+
+def test_correct_documents_in_folder_aggregates_results(monkeypatch, tmp_path: Path):
+    service = GongmunDoctorMcpService()
+    (tmp_path / "a.hwpx").write_text("a", encoding="utf-8")
+    (tmp_path / "b.hwp").write_text("b", encoding="utf-8")
+    (tmp_path / "note.txt").write_text("ignore", encoding="utf-8")
+
+    def fake_correct_document(file_path: str, dry_run: bool, report: bool):
+        return type(
+            "Result",
+            (),
+            {
+                "total_corrections": 2,
+                "output_path": file_path + ".out",
+                "report_path": file_path + ".md" if report else None,
+            },
+        )()
+
+    monkeypatch.setattr(service, "correct_document", fake_correct_document)
+
+    batch = service.correct_documents_in_folder(
+        str(tmp_path),
+        dry_run=True,
+        report=True,
+        recursive=False,
+    )
+
+    assert batch.discovered_files == 2
+    assert batch.succeeded_files == 2
+    assert batch.failed_files == 0
+    assert batch.total_corrections == 4
+
+
+def test_correct_documents_in_folder_records_failures(monkeypatch, tmp_path: Path):
+    service = GongmunDoctorMcpService()
+    (tmp_path / "a.hwpx").write_text("a", encoding="utf-8")
+
+    def fake_correct_document(file_path: str, dry_run: bool, report: bool):
+        raise RuntimeError("blocked")
+
+    monkeypatch.setattr(service, "correct_document", fake_correct_document)
+
+    batch = service.correct_documents_in_folder(str(tmp_path))
+
+    assert batch.discovered_files == 1
+    assert batch.succeeded_files == 0
+    assert batch.failed_files == 1
+    assert batch.items[0].error == "blocked"

@@ -72,6 +72,29 @@ class CorrectionReportFile:
 
 
 @dataclass
+class BatchDocumentCorrectionItem:
+    file_path: str
+    success: bool
+    total_corrections: int = 0
+    output_path: str | None = None
+    report_path: str | None = None
+    error: str | None = None
+
+
+@dataclass
+class BatchDocumentCorrectionResult:
+    requested_folder_path: str
+    recursive: bool
+    dry_run: bool
+    report: bool
+    discovered_files: int
+    succeeded_files: int
+    failed_files: int
+    total_corrections: int
+    items: list[BatchDocumentCorrectionItem] = field(default_factory=list)
+
+
+@dataclass
 class TemplateVariableInfo:
     key: str
     label: str

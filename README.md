@@ -1,831 +1,102 @@
-# 공문닥터 (GongmunDoctor)
+# Why This Exists
 
-> 보안이 엄격한 공공·민간 환경을 위한 한글(HWP/HWPX) 문서 자동 교정 도구
->
-> 맞춤법·문법·공문서체 오류를 한 번에 교정합니다.
-> 문서 내용이 외부 서버로 전송되지 않습니다.
+Meta description: Local-first MCP server for secure Korean official-document correction without sending files to cloud APIs.
 
----
+Labels: mcp, local-first, security, hwpx, korean-documents, claude, codex
 
-## 목차
+Government and enterprise teams do not struggle because they lack AI. They struggle because every useful automation asks them to trade away control. GongMun Doctor MCP exists to keep the useful part of AI, natural language workflow, while keeping the risky part, document movement and cloud dependence, on a short leash.
 
-1. [공문닥터란?](#1-공문닥터란)
-2. [설치 전 준비](#2-설치-전-준비)
-3. [설치 방법](#3-설치-방법)
-4. [사용 방법 — CLI (명령줄)](#4-사용-방법--cli-명령줄)
-5. [사용 방법 — GUI (그래픽 화면)](#5-사용-방법--gui-그래픽-화면)
-6. [사용 방법 — 한글 플러그인 (시스템 트레이)](#6-사용-방법--한글-플러그인-시스템-트레이)
-7. [사용 방법 — 클립보드 모드 (전자결재시스템 연동)](#7-사용-방법--클립보드-모드-전자결재시스템-연동)
-8. [공문 템플릿 엔진](#8-공문-템플릿-엔진)
-9. [교정 규칙 안내](#9-교정-규칙-안내)
-10. [교정 보고서 읽는 법](#10-교정-보고서-읽는-법)
-11. [L4 AI 분석 — 문장 조화 검사 (선택 사항)](#11-l4-ai-분석--문장-조화-검사-선택-사항)
-12. [보안 설계 원칙](#12-보안-설계-원칙)
-13. [자주 묻는 질문 (FAQ)](#13-자주-묻는-질문-faq)
-14. [문제 해결](#14-문제-해결)
+This repository turns GongMun Doctor into a local MCP server so a client like Claude can say "correct this document" and use your machine's document pipeline instead of uploading sensitive files somewhere else.
 
----
+## ⚡ What You Get In 30 Seconds
 
-## 1. 공문닥터란?
+- You keep the original rule-based correction engine.
+- You gain a local MCP server that Claude or any stdio MCP client can call.
+- You can correct one document, inspect rules, fetch reports, preview text, and batch a folder.
+- You do not need cloud API keys for the default workflow.
 
-공문닥터는 **보안이 엄격한 공공기관·민간기업**에서 안전하게 사용할 수 있도록 설계된 한글(HWP/HWPX) 문서 자동 교정 도구입니다.
+## 🔒 Security First
 
-문서 교정에 필요한 모든 처리를 **PC 내부에서만** 수행하며, 선택적으로 클라우드 AI API를 연동할 경우에도 개인정보·민감정보가 외부로 전송되지 않도록 자동으로 보호합니다.
+This project is opinionated on purpose.
 
-### 무엇을 교정하나요?
+- Local filesystem paths only. URLs are rejected.
+- Default tools make no network calls.
+- Cloud LLM analysis is not part of the default MCP surface.
+- Markdown reports are written only when you ask for them.
+- HWP/HWPX handling stays on the machine that already has access to the files.
 
-| 분류 | 예시 |
-|------|------|
-| **맞춤법·띄어쓰기** | `시행알림` → `시행 알림`, `할려고` → `하려고` |
-| **문법 오류** | `되어지고 있습니다` → `되고 있습니다` (이중 피동 제거) |
-| **공문서체** | `부탁드립니다` → `바랍니다`, `하기와 같이` → `다음과 같이` |
-| **날짜 형식** | `2026.04.01~2026.06.30` → `2026. 04. 01. ~ 2026. 06. 30.` |
-| **문서번호 형식** | `00과 -1234호` → `00과-1234호` |
-| **AI 심층 분석** | 중복 표현·복잡한 문장·피동 남용 탐지 (선택) |
+That is the whole point. Convenience without careless leakage is still possible.
 
-### 5가지 사용 방법
+## 🧰 Tools
 
-| 방법 | 대상 | 명령/단축키 |
-|------|------|------------|
-| **CLI** | 명령줄 사용자, 자동화·배치 처리 | `gongmun-doctor correct 문서.hwpx` |
-| **GUI** | 마우스로 쉽게 사용하고 싶은 분 | `gongmun-doctor-gui` |
-| **한글 플러그인** | 한글(한컴오피스) 작업 중 바로 교정 | `gongmun-doctor plugin` |
-| **클립보드 모드** | 전자결재시스템(온나라·에듀파인 등) 웹 작성 환경 | `Ctrl+Shift+C` |
-| **템플릿 엔진** | 상황별 공문서 서식 자동 완성 | Python API / 향후 UI |
+These MCP tools are exposed today:
 
-### 보안 특징
+- `correct_document(file_path, dry_run=False, report=False)`
+- `correct_documents_in_folder(folder_path, dry_run=False, report=False, recursive=False)`
+- `list_rules(layer=None)`
+- `get_correction_report(file_path)`
+- `preview_text_corrections(text, layers=None)`
+- `list_document_templates(category=None)`
+- `match_document_templates(query)`
+- `get_template_variables(template_id)`
+- `render_document_template(template_id, values)`
 
-- **완전 오프라인** — 규칙 기반 교정(L1-L3)은 인터넷 없이 동작합니다.
-- **AI 연동 시에도 PII 자동 차단** — 클라우드 AI 사용 시 주민번호·전화번호·이메일·계좌번호 등이 자동으로 마스킹되어 외부로 전송되지 않습니다.
-- **원본 파일 안전** — 교정 전에 자동으로 백업 파일(`.bak.hwpx`)을 생성합니다.
-- **서식 그대로 보존** — 글꼴, 표, 이미지, 단락 서식이 변하지 않습니다.
-- **근거 있는 교정** — 모든 교정 항목에 「한글 맞춤법」, 「행정업무운영편람」 등 출처를 명시합니다.
+## 🚀 Quick Start
 
----
-
-## 2. 설치 전 준비
-
-### 필요한 것
-
-| 항목 | 요구 사항 | 확인 방법 |
-|------|-----------|-----------|
-| 운영체제 | Windows 10 / 11 | — |
-| Python | **3.10 이상** | 명령 프롬프트에서 `python --version` 입력 |
-
-### Python이 없다면?
-
-1. [python.org](https://www.python.org/downloads/) 에서 최신 Python 3 설치 파일을 내려받습니다.
-2. 설치 시 **"Add Python to PATH"** 체크박스를 반드시 선택합니다.
-
-   ```
-   [v] Add Python 3.xx to PATH   ← 이것을 체크해야 합니다
-   ```
-
-3. 설치 완료 후 명령 프롬프트를 새로 열고 아래 명령으로 확인합니다.
-
-   ```
-   python --version
-   ```
-
-   `Python 3.12.x` 같은 결과가 나오면 준비 완료입니다.
-
----
-
-## 3. 설치 방법
-
-### 3-1. 명령 프롬프트 열기
-
-Windows 키 + R → `cmd` 입력 → 엔터
-
-또는 시작 메뉴에서 **"명령 프롬프트"** 검색 후 실행.
-
-### 3-2. 공문닥터 폴더로 이동
-
-공문닥터 파일을 내려받은 위치로 이동합니다.
-예시로 `C:\Users\홍길동\workspace\gongmun-doctor`에 있다면:
-
-```
-cd C:\Users\홍길동\workspace\gongmun-doctor
-```
-
-### 3-3. 기본 설치 (규칙 교정만 사용)
-
-```
-pip install -e .
-```
-
-### 3-4. 기능별 추가 설치 (선택)
-
-| 기능 | 추가 설치 명령 | 필요한 경우 |
-|------|---------------|------------|
-| 한글 플러그인 모드 | `pip install -e ".[hwp]"` | 시스템 트레이에서 단축키로 교정할 때 |
-| 로컬 AI 분석 (오프라인) | `pip install -e ".[llm]"` | 인터넷 없이 AI 분석을 사용할 때 |
-| 클라우드 AI 분석 | `pip install -e ".[cloud]"` | Claude/ChatGPT/Gemini API를 연결할 때 |
-| 전체 기능 | `pip install -e ".[hwp,cloud]"` | 모든 기능을 함께 사용할 때 |
-
-### 3-5. 설치 확인
-
-```
-gongmun-doctor --version
-```
-
-```
-gongmun-doctor 1.0.0
-```
-
-이 문구가 나오면 설치 완료입니다.
-
----
-
-## 4. 사용 방법 — CLI (명령줄)
-
-### 가장 간단한 방법
-
-```
-gongmun-doctor correct 문서.hwpx
-```
-
-**실행하면:**
-
-1. 원본 파일이 자동으로 백업됩니다. (`문서.날짜시간.bak.hwpx`)
-2. 교정된 파일이 새로 저장됩니다. (`문서_corrected.hwpx`)
-3. 어떤 부분이 교정됐는지 화면에 출력됩니다.
-
-**실제 출력 예시:**
-
-```
-[1/4] 규칙 로드 완료: 69개
-[2/4] 원본 백업: 문서.20260322_143015.bak.hwpx
-[3/4] 문서 열기 완료: 문서.hwpx (21개 문단)
-[4/4] 교정 파일 저장: 문서_corrected.hwpx
-
-──────────────────────────────────────────────────
-  총 문단: 21개
-  교정 건수: 12건
-  교정 파일: 문서_corrected.hwpx
-──────────────────────────────────────────────────
-
-교정 내역 (12건):
-  [SP-001] 문단 1: '...시행알림...' → '...시행 알림...'
-  [OS-002] 문단 3: '...관련 :...' → '...관련:...'
-  ...
-```
-
-### 파일 경로에 빈칸이 있을 때
-
-경로를 큰따옴표로 묶어 주세요.
-
-```
-gongmun-doctor correct "C:\Users\홍길동\문서\도로보수 시행알림.hwpx"
-```
-
-### correct 명령 옵션 전체
-
-```
-gongmun-doctor correct <입력파일> [옵션]
-```
-
-| 옵션 | 설명 | 예시 |
-|------|------|------|
-| `-o 경로` | 교정 파일 저장 경로 지정 | `-o 교정완료.hwpx` |
-| `--report` | 교정 보고서(.md) 함께 생성 | `--report` |
-| `--dry-run` | 파일을 수정하지 않고 교정 내용만 미리 보기 | `--dry-run` |
-| `--strict` | L1+L2+L3 모든 규칙 명시적 적용 (AI 제외) | `--strict` |
-| `--llm-model 경로` | 로컬 AI 모델 경로 (.gguf) | `--llm-model C:\models\model.gguf` |
-| `--cloud-llm 제공자` | 클라우드 AI 연동: `claude` / `openai` / `gemini` | `--cloud-llm claude` |
-| `--cloud-model 이름` | 클라우드 AI 모델명 직접 지정 | `--cloud-model gpt-5-mini` |
-
-#### 사용 예시
-
-**기본 교정:**
-```
-gongmun-doctor correct 도로보수공사.hwpx
-```
-
-**교정 보고서도 함께:**
-```
-gongmun-doctor correct 도로보수공사.hwpx --report
-```
-→ `도로보수공사_corrected.hwpx` + `도로보수공사_corrected.md` 생성
-
-**저장 위치 직접 지정:**
-```
-gongmun-doctor correct 도로보수공사.hwpx -o C:\검토완료\교정본.hwpx --report
-```
-
-**수정 전 미리 보기:**
-```
-gongmun-doctor correct 도로보수공사.hwpx --dry-run
-```
-→ 화면에만 표시되고, 파일은 절대 바뀌지 않습니다.
-
-**HWP 파일 교정 (LibreOffice 필요):**
-```
-gongmun-doctor correct 도로보수공사.hwp
-```
-
-**클라우드 AI 분석과 함께 교정:**
-```
-set ANTHROPIC_API_KEY=sk-ant-...
-gongmun-doctor correct 문서.hwpx --cloud-llm claude --report
-```
-
-### list-rules — 교정 규칙 목록 보기
-
-```
-gongmun-doctor list-rules
-gongmun-doctor list-rules --layer L1_spelling
-gongmun-doctor list-rules --layer L2_grammar
-gongmun-doctor list-rules --layer L3_official_style
-```
-
----
-
-## 5. 사용 방법 — GUI (그래픽 화면)
-
-명령줄이 익숙하지 않아도 마우스로 쉽게 사용할 수 있습니다.
-
-### 실행
-
-```
-gongmun-doctor-gui
-```
-
-### 화면 구성
-
-```
-┌──────────────────────┬─────────────────────────────┐
-│ [입력 파일]          │                             │
-│ 문서.hwpx  [찾기]    │   실행 로그 / 교정 결과     │
-│                      │                             │
-│ [옵션]               │   [1/4] 규칙 로드 완료: 69개│
-│ ☑ 교정 보고서 생성   │   [2/4] 원본 백업 완료      │
-│ ☐ dry-run            │   [3/4] 문서 열기 완료      │
-│ ☐ 엄격 모드          │   [4/4] 교정 파일 저장      │
-│                      │                             │
-│ [L4 LLM 분석]        │   교정 완료: 12건           │
-│ ◉ 없음               │                             │
-│ ○ 로컬 GGUF          │                             │
-│ ○ 클라우드 API       │                             │
-│                      │                             │
-│ [교정 실행]          │                             │
-└──────────────────────┴─────────────────────────────┘
-```
-
-### 사용 순서
-
-1. **찾기** 버튼으로 교정할 `.hwpx` 또는 `.hwp` 파일을 선택합니다.
-2. 옵션을 설정합니다 (보고서 생성, dry-run 등).
-3. AI 분석이 필요하면 **L4 LLM 분석** 섹션에서 선택합니다.
-   - **없음** — 규칙 교정만 (기본, 오프라인)
-   - **로컬 GGUF** — PC에 설치된 AI 모델 파일 선택
-   - **클라우드 API** — Claude / OpenAI / Gemini 중 선택, 필요하면 모델명 직접 입력
-4. **교정 실행** 버튼을 누릅니다.
-5. 완료 후 **교정 파일 열기** 또는 **보고서 열기** 버튼으로 결과를 확인합니다.
-
-> 클라우드 API 선택 시 해당 API 키를 환경변수로 미리 설정해야 합니다. ([9절 참조](#9-l4-ai-분석--문장-조화-검사-선택-사항))
-
----
-
-## 6. 사용 방법 — 한글 플러그인 (시스템 트레이)
-
-한글(한컴오피스)에서 문서를 작성하는 도중 단축키 한 번으로 교정합니다.
-
-### 사전 설치
-
-```
-pip install -e ".[hwp]"
-```
-
-### 실행
-
-```
-gongmun-doctor plugin
-```
-
-또는 옵션 지정:
-
-```
-gongmun-doctor plugin --hotkey ctrl+shift+g --mode track_changes
-```
-
-| 옵션 | 설명 | 기본값 |
-|------|------|--------|
-| `--hotkey` | 교정 실행 단축키 | `ctrl+shift+g` |
-| `--mode` | `track_changes` — 변경 추적으로 적용 (검토 후 수락) | `track_changes` |
-|  | `direct` — 바로 적용 | |
-| `--strict` | L1+L2+L3 규칙만 적용 (AI 제외) | — |
-
-### 사용 순서
-
-1. 명령 프롬프트에서 `gongmun-doctor plugin` 실행 → 시스템 트레이에 아이콘이 생깁니다.
-2. 한글에서 교정할 문서를 엽니다.
-3. 단축키(기본: `Ctrl+Shift+G`)를 누르면 자동으로 교정이 적용됩니다.
-4. `track_changes` 모드에서는 변경 추적이 활성화되어 수락/거절을 선택할 수 있습니다.
-5. 트레이 아이콘 우클릭 → **종료**로 플러그인을 종료합니다.
-
-> 한글(한컴오피스)이 설치되어 있어야 합니다.
-
----
-
-## 7. 사용 방법 — 클립보드 모드 (전자결재시스템 연동)
-
-실제 지방자치단체·공공기관 업무 환경에서는 HWP 파일보다 **온나라·에듀파인 같은 웹 기반 전자결재시스템**에서 공문을 작성하는 경우가 많습니다.
-클립보드 모드는 이 환경에서 HWP 파일 없이 공문닥터의 교정 기능을 사용할 수 있도록 합니다.
-
-### 동작 흐름
-
-```
-전자결재시스템에서 텍스트 선택 후 Ctrl+C
-  → 공문닥터 트레이 앱이 실행 중이어야 함
-  → Ctrl+Shift+C 누르면:
-     1. 클립보드 텍스트 가져오기
-     2. Gate 1~4 PII 마스킹 (주민번호·전화번호 등 자동 보호)
-     3. 교정 파이프라인 실행 (L1~L3 규칙)
-     4. 교정 결과를 클립보드에 덮어쓰기
-     5. 토스트 알림: "7건 교정 완료. Ctrl+V로 붙여넣으세요."
-  → 전자결재시스템에서 Ctrl+V로 붙여넣기
-```
-
-### 실행 방법
-
-한글 플러그인(시스템 트레이)을 실행하면 클립보드 모드가 자동으로 활성화됩니다.
-
-```
-gongmun-doctor plugin
-```
-
-트레이 아이콘이 실행된 상태에서:
-
-| 단축키 | 기능 |
-|--------|------|
-| `Ctrl+Shift+G` | 한글(한컴오피스) 현재 문서 교정 |
-| `Ctrl+Shift+C` | 클립보드 텍스트 교정 (전자결재시스템용) |
-
-트레이 아이콘 우클릭 메뉴에서도 **"클립보드 교정 (Ctrl+Shift+C)"** 항목으로 실행할 수 있습니다.
-
-### 제약 사항
-
-- Windows 전용 (`keyboard` 라이브러리 사용)
-- 클립보드 **상시 감시 없음** — 단축키를 눌렀을 때만 처리
-- 클라우드 AI 연동 없이 규칙 교정(L1-L3)만 적용됨
-- 관리자 권한이 필요할 수 있음 (일부 보안 정책 환경)
-
----
-
-## 8. 공문 템플릿 엔진
-
-자주 쓰는 공문 유형을 키워드 한 마디로 불러와 변수만 채워 완성하는 기능입니다.
-
-### 현재 수록 서식 (50개)
-
-| 카테고리 | 수량 | 예시 |
-|----------|------|------|
-| 일반 행정 | 15개 | 업무협조요청, 알림통보, 회신, 업무보고, 회의개최알림, 의견조회 등 |
-| 건설/토목 | 10개 | 착공알림, 준공알림, 설계변경요청, 준공검사결과통보, 하자보수통보 등 |
-| 계약/조달 | 10개 | 입찰공고, 낙찰자결정통보, 계약해지통보, 기성검사요청, 물품구매요청 등 |
-| 인사/복무 | 5개 | 출장결과보고, 휴가사용보고, 겸직허가신청, 국내출장명령, 직위해제통보 |
-| 민원 | 5개 | 민원회신, 민원처리기간연장통보, 민원이첩통보, 질의회신 등 |
-| 감사/점검 | 5개 | 감사결과통보, 시정조치요구, 시정조치결과보고, 지도점검알림 등 |
-
-모든 서식은 행정안전부 행정업무운영편람, 국가법령정보센터 등 실제 공공기관 출처를 기반으로 작성되었습니다.
-
-### Python API 사용 예시
-
-```python
-from gongmun_doctor.agents.administrative.template_engine import TemplateEngine
-
-engine = TemplateEngine()
-
-# 키워드로 서식 검색
-results = engine.match("착공 알림 공문 써줘")
-# → [{"id": "con-001-착공알림", "name": "공사 착공 알림", ...}]
-
-# 변수 목록 확인
-variables = engine.get_variables("con-001-착공알림")
-# → [{"key": "공사명", "label": "공사 명칭", "example": "OO도로 확포장 공사"}, ...]
-
-# 변수 치환하여 완성된 공문 본문 생성
-rendered = engine.render("con-001-착공알림", {
-    "공사명": "○○도로 확포장 공사",
-    "착공일": "2026. 4. 1.",
-    "준공예정일": "2026. 10. 31.",
-    "시공사": "(주)○○건설",
-    "발신기관": "○○시장",
-})
-print(rendered)
-```
-
-### 서식 추가·수정 방법
-
-서식은 `src/gongmun_doctor/agents/administrative/templates/` 폴더의 JSON 파일로 관리됩니다.
-직접 JSON 파일을 편집하거나 새 파일을 추가하면 즉시 반영됩니다.
-
-```json
-{
-  "id": "custom-001-내서식",
-  "name": "내부 보고 서식",
-  "category": "일반행정",
-  "source": "우리 기관 내부 양식",
-  "source_url": "",
-  "collected_date": "2026-03-23",
-  "triggers": ["내부 보고", "보고서"],
-  "variables": [
-    {"key": "제목", "label": "보고 제목", "example": "○○ 업무 추진 현황 보고"}
-  ],
-  "body": "제목 {{제목}}\n\n..."
-}
-```
-
----
-
-## 9. 교정 규칙 안내
-
-공문닥터는 세 가지 계층으로 규칙을 구분합니다.
-
-### L1 — 맞춤법·띄어쓰기 (32개 규칙)
-
-| 규칙 ID | 틀린 표현 | 올바른 표현 | 근거 |
-|---------|-----------|-------------|------|
-| SP-001 | 시행알림 | 시행 알림 | 한글 맞춤법 제2항 |
-| SP-004 | 검토하여주시기 | 검토하여 주시기 | 한글 맞춤법 제47항 |
-| SP-006 | 할려고 | 하려고 | 한글 맞춤법 제15항 |
-| SP-012 | 됬습니다 | 됐습니다 | 한글 맞춤법 제35항 |
-| SP-026 | 요청드립니다 | 요청합니다 | 국립국어원 공문서 바로 쓰기 |
-| SP-027 | 말씀드립니다 | 알립니다 | 공문서 작성 요령 |
-
-> 보조 용언 띄어쓰기, 오탈자, 과잉 경어 표현 등 32개 패턴을 검사합니다.
-
-### L2 — 문법 (12개 규칙)
-
-| 규칙 ID | 틀린 표현 | 올바른 표현 | 근거 |
-|---------|-----------|-------------|------|
-| GR-006 | 처리되어지고 있습니다 | 처리되고 있습니다 | 국립국어원 어문 규범 |
-| GR-009 | 제출해야됩니다 | 제출하여야 합니다 | 공문서 작성 요령 |
-| GR-010 | 해야 됩니다 | 하여야 합니다 | 공문서 작성 요령 |
-
-> 이중 피동, 구어체의 격식체 변환, 중복 조사 등 12개 패턴을 검사합니다.
-
-### L3 — 공문서체 (25개 규칙)
-
-| 규칙 ID | 틀린 표현 | 올바른 표현 | 근거 |
-|---------|-----------|-------------|------|
-| OS-003 | 00과 -1234호 | 00과-1234호 | 행정업무운영편람 제7조 |
-| OS-004 | 2026.04.01~2026.06.30 | 2026. 04. 01. ~ 2026. 06. 30. | 행정업무운영편람 별표 |
-| OS-005 | 참고되시기 바랍니다 | 참고됩니다 | 국립국어원 공문서 바로 쓰기 |
-| OS-007 | 협조 부탁드립니다 | 협조 바랍니다 | 공문서 작성 요령 |
-| OS-017 | 하기와 같이 | 다음과 같이 | 국립국어원 행정용어 순화 |
-| OS-020 | 익일 | 다음 날 | 국립국어원 행정용어 순화 |
-| OS-023 | 귀기관 | 귀 기관 | 행정업무운영편람 |
-
-> 날짜·문서번호 형식, 높임법 통일, 한자식 행정용어 순화 등 25개 패턴을 검사합니다.
-
----
-
-## 10. 교정 보고서 읽는 법
-
-`--report` 옵션을 사용하면 Markdown 형식의 보고서 파일(`.md`)이 생성됩니다.
-메모장, VS Code, 또는 Markdown 뷰어로 열 수 있습니다.
-
-### 보고서 예시
-
-```markdown
-# 공문닥터 교정 보고서
-
-- 모드: 교정 완료
-- 입력 파일: `도로보수공사.hwpx`
-- 출력 파일: `도로보수공사_corrected.hwpx`
-- 처리 시각: 2026-03-22T14:30:15
-- 총 문단 수: 21
-- 교정 건수: 12
-- 서식 보존: 예
-
----
-
-## 교정 내역
-
-### 문단 1
-
-| 항목 | 내용 |
-|------|------|
-| **규칙** | `SP-001` — 합성어가 아닌 경우 띄어쓰기 |
-| **계층** | L1_spelling |
-| **원문** | ...도로 시행알림 공고... |
-| **교정** | ...도로 시행 알림 공고... |
-| **근거** | 한글 맞춤법 제2항 |
-```
-
-### 보고서 항목 설명
-
-| 항목 | 설명 |
-|------|------|
-| 규칙 ID | 어떤 규칙이 적용됐는지 (SP=맞춤법, GR=문법, OS=공문서체) |
-| 계층 | L1(맞춤법), L2(문법), L3(공문서체) |
-| 원문 | 교정 전 문장 |
-| 교정 | 교정 후 문장 |
-| 근거 | 교정의 법적·규범적 근거 |
-
----
-
-## 11. L4 AI 분석 — 문장 조화 검사 (선택 사항)
-
-규칙으로는 잡기 어려운 중복 표현·복잡한 문장·피동 남용을 AI가 추가로 분석합니다.
-**설정하지 않아도** 공문닥터는 정상 동작합니다.
-
-L4 제안은 문서를 직접 수정하지 않으며, 검토 후 적용 여부를 직접 결정하세요.
-
----
-
-### 방법 A — 로컬 AI (완전 오프라인, 보안 최우선 환경)
-
-인터넷 연결 없이 PC 내부에서만 AI를 실행합니다.
-문서 내용이 외부로 전송되지 않습니다.
-
-**1단계: 설치**
-
-```
-pip install -e ".[llm]"
-```
-
-**2단계: 모델 내려받기**
-
-아래 두 모델 중 하나를 선택합니다.
-
-| 모델 | 파일 크기 | 특징 | 필요 RAM |
-|------|-----------|------|----------|
-| EXAONE-3.5-2.4B-Instruct-Q4_K_M.gguf | ~1.5GB | 한국어 특화, LG AI Research | ~2GB |
-| Qwen2.5-3B-Instruct-Q4_K_M.gguf | ~2GB | 다국어, 추론 능력 우수 | ~2.5GB |
-
-HuggingFace 검색창에 모델명을 입력하고 `.gguf` 파일을 내려받습니다.
-
-예시 저장 위치: `C:\models\EXAONE-3.5-2.4B-Instruct-Q4_K_M.gguf`
-
-**3단계: 실행**
-
-```
-gongmun-doctor correct 문서.hwpx --llm-model C:\models\EXAONE-3.5-2.4B-Instruct-Q4_K_M.gguf --report
-```
-
----
-
-### 방법 B — 클라우드 AI API (보안 규정이 허용하는 환경)
-
-Claude(Anthropic) / ChatGPT(OpenAI) / Gemini(Google) API를 연동합니다.
-
-**보안 주의:** 클라우드 AI 사용 전 반드시 소속 기관의 보안 정책을 확인하세요.
-공문닥터는 아래와 같이 민감 정보를 자동으로 보호합니다. ([10절 참조](#10-보안-설계-원칙))
-
-**1단계: 설치**
-
-```
-pip install -e ".[cloud]"
-```
-
-**2단계: API 키 환경변수 설정**
-
-사용할 제공자의 API 키를 환경변수로 설정합니다.
-
-```
-rem Claude (Anthropic)
-set ANTHROPIC_API_KEY=sk-ant-...
-
-rem ChatGPT (OpenAI)
-set OPENAI_API_KEY=sk-...
-
-rem Gemini (Google)
-set GOOGLE_API_KEY=AIza...
-```
-
-> 환경변수는 명령 프롬프트 창을 닫으면 사라집니다.
-> 영구 설정: Windows 검색 → "환경 변수" → 시스템 환경 변수 편집
-
-**3단계: 실행**
-
-```
-gongmun-doctor correct 문서.hwpx --cloud-llm claude --report
-gongmun-doctor correct 문서.hwpx --cloud-llm openai --report
-gongmun-doctor correct 문서.hwpx --cloud-llm gemini --report
-gongmun-doctor correct 문서.hwpx --cloud-llm openai --cloud-model gpt-5-mini --report
-```
-
-**출력 예시:**
-
-```
-[Cloud LLM] claude 연결 중...
-[Cloud LLM] claude 연결 완료 (L4 문장 조화 분석 활성화)
-[1/4] 규칙 로드 완료: 69개
-...
-  교정 건수: 12건 (규칙 기반)
-  L4 제안: 3건 (AI)
-```
-
-보고서(`.md`)를 열면 L4 섹션이 추가되어 있습니다.
-
-기본 모델은 제공자별 기본값을 사용하며, 업무에 맞게 다른 모델을 쓰려면 `--cloud-model` 또는 GUI의 모델 입력란을 사용하면 됩니다.
-
-```markdown
-## L4 -- 문장 조화 제안 (AI)
-
-### 문단 5
-
-| 항목 | 내용 |
-|------|------|
-| 유형 | 중복 표현 |
-| 원문 | 미리 사전에 검토하여 |
-| 제안 | 사전에 검토하여 |
-| 이유 | '미리'와 '사전에'는 같은 의미의 중복 표현 |
-```
-
----
-
-## 12. 보안 설계 원칙
-
-공문닥터는 보안이 엄격한 환경에서의 사용을 고려하여 아래 원칙을 적용합니다.
-
-### 완전 오프라인 동작 (L1-L3 규칙 교정)
-
-규칙 기반 교정(L1-L3)은 인터넷 연결 없이 완전히 PC 내부에서만 동작합니다.
-문서 내용, 파일명, 사용자 정보 어떤 것도 외부로 전송되지 않습니다.
-
-### 클라우드 AI 연동 시 PII 자동 마스킹
-
-클라우드 AI API(`--cloud-llm`)를 사용하는 경우, 문장이 AI 서버로 전송되기 전에
-아래 개인정보 항목을 자동으로 식별하여 익명 토큰으로 치환합니다.
-
-| 개인정보 유형 | 원본 예시 | 전송되는 내용 |
-|---|---|---|
-| 주민등록번호 | `901231-1234567` | `[주민번호]` |
-| 전화번호 | `010-1234-5678` | `[전화번호]` |
-| 이메일 주소 | `hong@gov.kr` | `[이메일]` |
-| 계좌번호 | `123-456-789012` | `[계좌번호]` |
-| 여권번호 | `M12345678` | `[여권번호]` |
-| 주소 | `서울특별시 강남구 테헤란로 123` | `[주소]` |
-
-마스킹은 AI 서버에 전달되는 순간에만 적용되며, 교정 결과 파일과 보고서에는 원본이 그대로 유지됩니다.
-
-### API 키 보관
-
-API 키는 환경변수로만 처리하며, 소스코드·설정 파일·로그에 기록되지 않습니다.
-
----
-
-## 13. 자주 묻는 질문 (FAQ)
-
-**Q. 원본 파일이 손상될 수 있나요?**
-
-A. 아닙니다. 공문닥터는 교정 전에 반드시 원본을 백업합니다.
-백업 파일 이름: `원본파일명.날짜시간.bak.hwpx`
-예: `도로보수공사.20260322_143015.bak.hwpx`
-
----
-
-**Q. 교정 내용이 맞는지 확인하고 싶어요.**
-
-A. `--dry-run` 옵션을 먼저 사용하세요.
-
-```
-gongmun-doctor correct 문서.hwpx --dry-run
-```
-
-파일을 수정하지 않고 어떤 부분이 바뀌는지만 화면에 보여줍니다.
-
----
-
-**Q. 인터넷에 연결되어 있어야 하나요?**
-
-A. 규칙 교정(L1-L3)은 **완전 오프라인**으로 동작합니다.
-클라우드 AI(`--cloud-llm`)를 사용할 때만 인터넷이 필요합니다.
-로컬 AI(`--llm-model`)도 오프라인으로 동작합니다.
-
----
-
-**Q. 클라우드 AI를 사용해도 문서 내용이 안전한가요?**
-
-A. 공문닥터는 클라우드 AI로 전송하기 전에 주민번호·전화번호·이메일·계좌번호·여권번호·주소를 자동으로 익명 처리합니다.
-단, 소속 기관의 보안 정책과 클라우드 서비스 제공사의 데이터 처리 방침을 반드시 확인하세요.
-보안 규정이 엄격한 환경에서는 **로컬 AI** 또는 **규칙 교정만** 사용하는 것을 권장합니다.
-
----
-
-**Q. HWP 파일(.hwp)도 교정할 수 있나요?**
-
-A. 가능하지만 **LibreOffice** 설치가 필요합니다.
-LibreOffice가 없으면 한글에서 파일을 열고 **다른 이름으로 저장 → HWPX 형식**으로 저장한 뒤 사용하세요.
-
----
-
-**Q. 교정이 하나도 안 됐다고 나와요.**
-
-A. 문서에 해당 규칙에 걸리는 표현이 없는 것입니다. 정상입니다.
-`list-rules` 명령으로 어떤 패턴을 검사하는지 확인할 수 있습니다.
-
----
-
-**Q. 특정 교정 결과가 맞지 않는 것 같아요.**
-
-A. 규칙 기반 교정이라 문맥에 따라 예외가 생길 수 있습니다.
-교정 파일을 한글에서 열고 해당 부분만 직접 수정하세요.
-원본은 백업되어 있으므로 안심하고 교정 파일을 편집하면 됩니다.
-
----
-
-**Q. 보고서 파일(.md)을 어떻게 열어 보나요?**
-
-A. 가장 간단한 방법은 **메모장**으로 열기입니다.
-서식 있는 보기를 원하면 VS Code나 Markdown 뷰어를 사용하거나, 확장자를 `.txt`로 바꾸면 메모장에서 바로 볼 수 있습니다.
-
----
-
-## 14. 문제 해결
-
-### `gongmun-doctor`를 입력했는데 "명령을 찾을 수 없습니다"
-
-1. 명령 프롬프트를 **완전히 닫았다가** 다시 여세요.
-2. 공문닥터 폴더에서 `pip install -e .`를 다시 실행하세요.
-3. 그래도 안 된다면:
-   ```
-   python -m gongmun_doctor correct 문서.hwpx
-   ```
-
----
-
-### `pip install -e .` 실행 중 오류가 났어요
-
-Python 버전이 3.10 미만이면 설치되지 않습니다.
-
-```
-python --version
-```
-
-`Python 3.9.x` 이하라면 Python을 최신 버전으로 업데이트하세요.
-
----
-
-### 교정 후 한글에서 파일을 열었는데 내용이 이상해요
-
-백업 파일(`.bak.hwpx`)을 원본으로 복원하세요.
-백업 파일은 교정 파일과 같은 폴더에 있습니다.
-
----
-
-### 화면에 글자가 깨져서 나와요 (???? 같은 문자)
-
-Windows 명령 프롬프트의 인코딩 문제입니다.
-
-```
-chcp 65001
-```
-
-이후 다시 명령을 실행하세요. 또는 **PowerShell**에서 실행하면 더 잘 보입니다.
-
----
-
-### 클라우드 AI 연결 오류 ("환경변수 ANTHROPIC_API_KEY가 설정되지 않았습니다")
-
-API 키 환경변수가 설정되지 않은 경우입니다.
-
-```
-set ANTHROPIC_API_KEY=sk-ant-...
-```
-
-환경변수를 설정한 **같은 명령 프롬프트 창**에서 명령을 실행하세요.
-
----
-
-## 개발자 안내
-
-### 테스트 실행
+If you already have a Python environment for local tools, install the package in editable mode and add the MCP dependency.
 
 ```bash
-pip install pytest
-pytest
-pytest -m "not integration"   # 단위 테스트만 실행
+python -m pip install "mcp[cli]>=1.0,<2"
+python -m pip install -e . --no-deps
 ```
 
-### 규칙 추가 방법
+Then start the server over stdio:
 
-`src/gongmun_doctor/rules/` 폴더 안의 JSON 파일을 열고 규칙 항목을 추가합니다.
-
-```json
-{
-  "id": "SP-033",
-  "type": "exact_replace",
-  "search": "틀린표현",
-  "replace": "올바른표현",
-  "desc": "교정 이유 설명",
-  "source": "근거 규정"
-}
+```bash
+python -m gongmun_doctor.mcp.server
 ```
 
-- `type`: `"exact_replace"` (단순 텍스트 치환) 또는 `"regex_replace"` (정규식 치환)
-- JSON 파일 저장 후 바로 적용됩니다. 재설치 불필요.
+If you want to inspect the tool surface before wiring it into a client, run the MCP Inspector:
 
----
+```bash
+npx -y @modelcontextprotocol/inspector python -m gongmun_doctor.mcp.server
+```
 
-## 라이선스
+## 🖥️ Claude Desktop Example
 
-MIT License
+If you use Claude Desktop, the shape is simple: point Claude at a local stdio server. An example config is included at [examples/claude_desktop_config.json](examples/claude_desktop_config.json).
 
----
+Use the Python interpreter that can import this package. On a locked-down machine, that detail matters more than the JSON.
 
-*공문닥터 v1.0 — 보안이 엄격한 환경을 위한 한글 문서 자동 교정 도구*
+## ✅ What Works Today
+
+### Single document correction
+
+Ask the client to call `correct_document` with a local `.hwpx` path. Use `dry_run=true` if you want a safe preview first.
+
+### Batch correction
+
+Ask the client to call `correct_documents_in_folder` and point it at a folder. This is the bridge from one-off fixes to real operational use.
+
+### Report retrieval
+
+If a report was written, `get_correction_report` reads the sidecar Markdown file back into the chat so review can happen in context.
+
+## 🛠️ Development Notes
+
+- The MCP layer is a wrapper around the existing GongMun Doctor core, not a rewrite.
+- `engine.py` was lightly decoupled so text-only MCP features do not hard-fail when HWPX runtime pieces are absent.
+- Python 3.14 may fail to build `python-hwpx` dependencies because of `lxml`. Python 3.12 or 3.13 is the safer baseline for full document handling.
+
+See [docs/mcp-preparation.md](docs/mcp-preparation.md) for the migration notes and security posture behind these decisions.
+
+## 🧭 Roadmap
+
+- Harden folder batching with richer filtering and summary reporting.
+- Add client-specific setup docs once the target client mix is fixed.
+- Split high-side local tools from any future remote or cloud-assisted tools.
+- Treat HWP COM automation as a separate permission boundary, not a casual helper.
+
+## 🌱 Philosophy
+
+The best AI tooling for sensitive work is not the one that feels magical first. It is the one that still deserves your trust after the magic wears off.

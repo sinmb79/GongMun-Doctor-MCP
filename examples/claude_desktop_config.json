@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "gongmun-doctor": {
+      "command": "python",
+      "args": [
+        "-m",
+        "gongmun_doctor.mcp.server"
+      ]
+    }
+  }
+}
