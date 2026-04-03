@@ -1,7 +1,6 @@
 {
   "mcpServers": {
     "gongmun-doctor": {
-      "type": "stdio",
       "command": "python",
       "args": [
         "-m",

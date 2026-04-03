@@ -1,0 +1,4 @@
+[mcp_servers.gongmun-doctor]
+command = "python"
+args = ["-m", "gongmun_doctor.mcp.server"]
+startup_timeout_sec = 20
